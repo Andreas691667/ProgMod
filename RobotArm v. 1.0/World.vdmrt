@@ -1,0 +1,30 @@
+class World
+
+operations
+
+    public Scenario1 : () ==> bool
+    Scenario1() == (
+        -- MySystem`arm 
+        return true;
+    );
+    
+    public Scenario2 : () ==> bool
+    Scenario2() == (
+        -- MySystem`arm
+        return true;
+    );
+
+    public Scenario3 : () ==> bool
+    Scenario3() == (
+        -- pass
+        return true;
+
+    );
+
+    public Scenario4 : () ==> bool
+    Scenario4() == (
+        -- pass
+        return true;
+    );
+
+end World
