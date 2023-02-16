@@ -2,5 +2,6 @@ system MySystem
 
 instance variables
     public static arm:RobotArm := new RobotArm();
+    public static arm2:RobotArm := new RobotArm(3.14/4);
 
 end MySystem
