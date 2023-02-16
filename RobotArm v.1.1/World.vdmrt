@@ -1,0 +1,68 @@
+class World
+
+operations
+
+    public Scenario1 : () ==> bool
+    Scenario1() == (
+        MySystem`arm.SetTargetAngle(3.14/4);
+        MySystem`arm.UpdateVelocity();
+        MySystem`arm.Step(3);
+        MySystem`arm.UpdateVelocity();
+        MySystem`arm.Step(5);
+        return true;
+    );
+    
+    public Scenario2 : () ==> bool
+    Scenario2() == (
+        MySystem`arm.SetTargetAngle(3.14/2);
+        MySystem`arm.UpdateVelocity();
+        MySystem`arm.Step(20);
+        return true;
+    );
+
+    public Scenario3 : () ==> bool
+    Scenario3() == (
+        MySystem`arm2.SetTargetAngle(3.14/4);
+        MySystem`arm2.UpdateVelocity();
+        MySystem`arm2.Step(100);
+        return true;
+    );
+
+    public Scenario4 : () ==> bool
+    Scenario4() == (
+        MySystem`arm.SetTargetAngle(0.8);
+        MySystem`arm.UpdateVelocity();
+        MySystem`arm.Step(5);
+        MySystem`arm.UpdateVelocity();
+        MySystem`arm.Step(10);
+        return true;
+    );
+
+    public Scenario5 : () ==> bool
+    Scenario5() == (
+        MySystem`arm2.SetTargetAngle(3.14/8);
+        MySystem`arm2.UpdateVelocity();
+        MySystem`arm2.Step(7);
+        MySystem`arm2.UpdateVelocity();
+        MySystem`arm2.Step(7);
+        MySystem`arm2.UpdateVelocity();
+        MySystem`arm2.Step(7);
+        MySystem`arm2.UpdateVelocity();
+        MySystem`arm2.Step(7);
+        MySystem`arm2.UpdateVelocity();
+        MySystem`arm2.Step(7);
+        MySystem`arm2.UpdateVelocity();
+        MySystem`arm2.Step(7);
+        MySystem`arm2.UpdateVelocity();
+        return true;
+    );
+
+    -- test angle pre condition
+    public Scenario6 : () ==> bool
+    Scenario6() == (
+        MySystem`arm.SetTargetAngle(-1);
+        return true;
+    );
+
+
+end World

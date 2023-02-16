@@ -1,0 +1,54 @@
+class RobotArm
+
+instance variables
+    qt : real;          -- target angle
+    public q : real;    -- current angle (radians)
+    public dq : real;   -- derivative (velocity)
+
+values
+    N1 : real = 0;          -- lower bound //operation range
+    N2 : real = 3.14/2;     -- upper bound //operation range
+    M1 : real = 0;
+    M2 : real = (5*3.14)/9; -- upper bound (100 degrees) //safety limit
+    K  : real = 0.2;        -- proportionality coefficient for updating velocity. 
+
+operations
+    public RobotArm: () ==> RobotArm
+    RobotArm() == (
+        -- initialize variables
+        qt := 0;
+        q := 0;
+        dq := 0;
+    );
+
+    public RobotArm: (real) ==> RobotArm
+    -- pre(real < N2) and (real > N1);
+    RobotArm(theta) ==     
+    (
+        -- initialize variables
+        qt := 0;
+        q := theta;
+        dq := 0;
+    );
+
+    -- step function
+    public Step : (real) ==> ()
+    Step(TimeStep) == duration(0) (        
+        q := q + dq * TimeStep;        
+    )
+    post (q <= M2) and (q >= M1);
+    
+    -- update velocity based on error
+    public UpdateVelocity : () ==> () 
+    UpdateVelocity() == duration(0) (
+        dq := (qt-q) * K;
+    );
+
+    -- set target angle method 
+    public SetTargetAngle : (real) ==> () 
+    SetTargetAngle(theta) == duration(0) (
+        qt := theta;
+    )
+    pre theta >= N1 and theta <= N2;
+
+end RobotArm
