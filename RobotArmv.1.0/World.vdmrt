@@ -4,7 +4,9 @@ operations
 
     public Scenario1 : () ==> bool
     Scenario1() == (
-        -- MySystem`arm 
+        MySystem`arm.SetTargetAngle(3.14/4);
+        MySystem`arm.UpdateVelocity();
+        MySystem`arm.Step(10);
         return true;
     );
     
