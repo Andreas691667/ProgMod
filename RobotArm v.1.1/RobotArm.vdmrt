@@ -36,6 +36,7 @@ operations
     Step(TimeStep) == duration(0) (        
         q := q + dq * TimeStep;        
     )
+    pre dq = 0 or (TimeStep < (M2-q)/abs(dq) and TimeStep > (M1-q)/abs(dq))
     post (q <= M2) and (q >= M1);
     
     -- update velocity based on error
