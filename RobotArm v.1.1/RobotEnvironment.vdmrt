@@ -1,0 +1,46 @@
+class RobotArmEnvironment
+
+instance variables
+    public env_q : real;    -- current angle (radians)
+    public env_dq : real;   -- derivative (velocity)
+
+values
+    N1 : real = 0;          -- lower bound //operation range
+    N2 : real = 3.14/2;     -- upper bound //operation range
+    M1 : real = 0;
+    M2 : real = (5*3.14)/9; -- upper bound (100 degrees) //safety limit
+    
+
+operations
+    public RobotArmEnvironment: () ==> RobotArmEnvironment
+    RobotArmEnvironment() == (
+        -- initialize variables
+        env_q := 0;
+        env_dq := 0;
+    );
+
+
+    -- -- Current in our design we just hardcode the velocity from the controller
+    -- -- In later designs, we would only set motor torque from controller (and calculate arm velocity in step?)
+    -- public SetArmVelocity : (real) ==> ()
+    -- SetArmVelocity(velocity) == duration(0) (
+    --     env_dq := velocity;
+    -- );
+
+    -- -- To print to console for testing purposes.
+    -- public GetArmVelocity : () ==> (real)
+    -- GetArmVelocity() == duration(0) (
+    --     return env_dq;
+    -- );
+
+    -- step function
+    public Step : (real) ==> ()
+    Step(TimeStep) == duration(0) (      
+        env_dq := MySystem`ctl.ctl_dq;  
+        env_q := env_q + env_dq * TimeStep;
+    )
+    pre env_dq = 0 or (TimeStep < (M2-env_q)/abs(env_dq) and TimeStep > (M1-env_q)/abs(env_dq))
+    post (env_q <= M2) and (env_q >= M1);
+    
+
+end RobotArmEnvironment

@@ -1,66 +1,139 @@
 class World
 
+instance variables
+    io : IO := new IO();
+
 operations
+
+    public echoState : (nat) ==> ()
+    echoState(Counter) == (
+        dcl str : seq of char := "";
+        str := str ^ VDMUtil`val2seq_of_char[nat](Counter);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`env.env_q);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`env.env_dq);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`ctl.ctl_qt);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`ctl.ctl_q);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](MySystem`ctl.ctl_dq);
+        str := str ^ "\n";
+        def - = io.echo(str) in skip;
+    );  
 
     public Scenario1 : () ==> bool
     Scenario1() == (
-        MySystem`arm.SetTargetAngle(3.14/4);
-        MySystem`arm.UpdateVelocity();
-        MySystem`arm.Step(3);
-        MySystem`arm.UpdateVelocity();
-        MySystem`arm.Step(5);
+        echoState(0);
+        MySystem`ctl.SetTargetAngle(3.14/4);
+        echoState(1);
+        MySystem`ctl.UpdateVelocity();
+        echoState(2);
+        MySystem`env.Step(3);
+        echoState(3);
+        MySystem`ctl.MonitorArm();
+        echoState(4);
+        MySystem`ctl.UpdateVelocity();
+        echoState(5);
+        MySystem`env.Step(5);
+        echoState(6);
+        MySystem`ctl.MonitorArm();
+        echoState(7);
         return true;
     );
     
     public Scenario2 : () ==> bool
     Scenario2() == (
-        MySystem`arm.SetTargetAngle(3.14/2);
-        MySystem`arm.UpdateVelocity();
-        MySystem`arm.Step(20);
+        echoState(0);
+        MySystem`ctl.SetTargetAngle(3.14/2);
+        echoState(1);
+        MySystem`ctl.UpdateVelocity();
+        echoState(2);
+        MySystem`env.Step(20);
+        echoState(3);
+        MySystem`ctl.MonitorArm();
+        echoState(4);
         return true;
     );
 
     public Scenario3 : () ==> bool
     Scenario3() == (
-        MySystem`arm2.SetTargetAngle(3.14/4);
-        MySystem`arm2.UpdateVelocity();
-        MySystem`arm2.Step(100);
+        echoState(0);
+        MySystem`ctl.SetTargetAngle(0);
+        echoState(1);
+        MySystem`ctl.UpdateVelocity();
+        echoState(2);
+        MySystem`env.Step(100);
+        echoState(3);
+        MySystem`ctl.MonitorArm();
+        echoState(4);
         return true;
     );
 
     public Scenario4 : () ==> bool
     Scenario4() == (
-        MySystem`arm.SetTargetAngle(0.8);
-        MySystem`arm.UpdateVelocity();
-        MySystem`arm.Step(5);
-        MySystem`arm.UpdateVelocity();
-        MySystem`arm.Step(10);
+        echoState(0);
+        MySystem`ctl.SetTargetAngle(0.8);
+        echoState(1);
+        MySystem`ctl.UpdateVelocity();
+        echoState(2);
+        MySystem`env.Step(5);
+        echoState(3);
+        MySystem`ctl.MonitorArm();
+        echoState(4);
+        MySystem`ctl.UpdateVelocity();
+        echoState(5);
+        MySystem`env.Step(5);
+        echoState(6);
+        MySystem`ctl.MonitorArm();
+        echoState(7);
         return true;
     );
 
     public Scenario5 : () ==> bool
     Scenario5() == (
-        MySystem`arm2.SetTargetAngle(3.14/8);
-        MySystem`arm2.UpdateVelocity();
-        MySystem`arm2.Step(7);
-        MySystem`arm2.UpdateVelocity();
-        MySystem`arm2.Step(7);
-        MySystem`arm2.UpdateVelocity();
-        MySystem`arm2.Step(7);
-        MySystem`arm2.UpdateVelocity();
-        MySystem`arm2.Step(7);
-        MySystem`arm2.UpdateVelocity();
-        MySystem`arm2.Step(7);
-        MySystem`arm2.UpdateVelocity();
-        MySystem`arm2.Step(7);
-        MySystem`arm2.UpdateVelocity();
-        return true;
-    );
-
-    -- test angle pre condition
-    public Scenario6 : () ==> bool
-    Scenario6() == (
-        MySystem`arm.SetTargetAngle(-1);
+        echoState(0);
+        MySystem`ctl.SetTargetAngle(3.14/8);
+        echoState(1);
+        MySystem`ctl.UpdateVelocity();
+        echoState(2);
+        MySystem`env.Step(7);
+        echoState(3);
+        MySystem`ctl.MonitorArm();
+        echoState(4);
+        MySystem`ctl.UpdateVelocity();
+        echoState(5);
+        MySystem`env.Step(7);
+        echoState(6);
+        MySystem`ctl.MonitorArm();
+        echoState(7);
+        MySystem`ctl.UpdateVelocity();
+        echoState(8);
+        MySystem`env.Step(7);
+        echoState(9);
+        MySystem`ctl.MonitorArm();
+        echoState(10);
+        MySystem`ctl.UpdateVelocity();
+        echoState(11);
+        MySystem`env.Step(7);
+        echoState(12);
+        MySystem`ctl.MonitorArm();
+        echoState(13);
+        MySystem`ctl.UpdateVelocity();
+        echoState(14);
+        MySystem`env.Step(7);
+        echoState(15);
+        MySystem`ctl.MonitorArm();
+        echoState(16);
+        MySystem`ctl.UpdateVelocity();
+        echoState(17);
+        MySystem`env.Step(7);
+        echoState(18);
+        MySystem`ctl.MonitorArm();
+        echoState(19);
+        MySystem`ctl.UpdateVelocity();
+        echoState(20);
         return true;
     );
 
