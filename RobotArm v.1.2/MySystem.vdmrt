@@ -1,0 +1,7 @@
+system MySystem
+
+instance variables
+    public static env:RobotArmEnvironment := new RobotArmEnvironment();
+    public static ctl:RobotController := new RobotController();
+
+end MySystem

@@ -4,25 +4,44 @@ instance variables
     public ctl_qt : real;   -- target angle
     public ctl_q : real;    -- current angle (radians)
     public ctl_dq : real;   -- derivative (velocity)
+    public K : real := 0; -- proportionality coefficient for updating velocity. Public for debugging needs
+
 
 values
     N1 : real = 0;          -- lower bound //operation range
     N2 : real = 3.14/2;     -- upper bound //operation range
-    K  : real = 0.2;        -- proportionality coefficient for updating velocity. 
+
+    M1 : real = 0;          -- lower safety bound
+    M2 : real = (5*3.14)/9; -- upper safety bound
+    alpha : real = 2 * 3.14 / 180;   -- 2 degrees accept margin when near target
+
 
 operations
     public RobotController: () ==> RobotController
     RobotController() == (
+        
         -- initilialize variables
         ctl_dq := 0;
         ctl_q := 0;
         ctl_qt := 0;
     );
 
-    -- update velocity based on error and position of arm
+    -- update velocity based on error
     public UpdateVelocity : () ==> () 
     UpdateVelocity() == duration(0) (
-        ctl_dq := (ctl_qt-ctl_q) * K;        
+        if (ctl_q <= M2 and ctl_q > N2) or (ctl_q >= M1 and ctl_q < N1)
+        then 
+            K := 0.4 
+        else if ((ctl_q <= N2 and ctl_q > (ctl_qt+alpha)) or (ctl_q >= N1 and ctl_q < (ctl_qt - alpha)))
+           then
+                K := 0.2
+        else
+            K := 0;
+
+        ctl_dq := (ctl_qt-ctl_q) * K;   
+        
+        --MySystem`env.SetArmVelocity(ctl_dq);
+        
     );
 
     -- set target angle method 
