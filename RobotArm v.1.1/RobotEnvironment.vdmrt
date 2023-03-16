@@ -22,7 +22,6 @@ operations
     -- step function
     public Step : (real) ==> ()
     Step(TimeStep) == duration(0) (      
-        env_dq := MySystem`ctl.ctl_dq;  
         env_q := env_q + env_dq * TimeStep;
     )
     pre env_dq = 0 or (TimeStep < (M2-env_q)/abs(env_dq) and TimeStep > (M1-env_q)/abs(env_dq))

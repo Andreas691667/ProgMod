@@ -22,7 +22,8 @@ operations
     -- update velocity based on error and position of arm
     public UpdateVelocity : () ==> () 
     UpdateVelocity() == duration(0) (
-        ctl_dq := (ctl_qt-ctl_q) * K;        
+        ctl_dq := (ctl_qt-ctl_q) * K;   
+        MySystem`env.env_dq := ctl_dq;     
     );
 
     -- set target angle method 
@@ -36,7 +37,6 @@ operations
     public MonitorArm : () ==> ()
     MonitorArm() == duration(0) (
         ctl_q := MySystem`env.env_q;
---        ctl_dq := MySystem`env.GetArmVelocity();
     );
 
 end RobotController
