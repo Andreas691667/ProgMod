@@ -1,0 +1,52 @@
+class RobotArmEnvironment
+
+instance variables
+    public env_q : real;    -- current angle (radians)
+    public env_dq : real;   -- derivative (velocity)
+
+values
+    N1 : real = 0;          -- lower bound //operation range
+    N2 : real = 3.14/2;     -- upper bound //operation range
+
+    M1 : real = -10 * 3.14 / 180;   --lower safety bound (-10 degrees)
+    M2 : real = (5*3.14)/9;         -- upper bound (100 degrees) //safety limit
+    
+
+operations
+    public RobotArmEnvironment: () ==> RobotArmEnvironment
+    RobotArmEnvironment() == (
+        -- initialize variables
+        env_q := 0;
+        env_dq := 0;
+    );
+
+    -- step function
+    public Step : (real) ==> ()
+    Step(TimeStep) == duration(0) (      
+        env_q := env_q + env_dq * TimeStep;
+    )
+    pre TimeStep > 0 and                                                    -- positive time 
+        (MySystem`ctl.ctl_qt >= N1 and MySystem`ctl.ctl_qt <= N2) and       -- target angle within operation range
+        (MySystem`ctl.ctl_q <= M2 and MySystem`ctl.ctl_q >= M1) and         -- current angle within safety range
+        (MySystem`ctl.ctl_dq = 0 or 
+        (TimeStep < (M2-MySystem`ctl.ctl_q)/abs(MySystem`ctl.ctl_dq) and    -- Refer to assignment 2 for derivation
+        TimeStep > (M1-MySystem`ctl.ctl_q)/abs(MySystem`ctl.ctl_dq)))       -- These gives upper bounds for the size of time step.         
+    post (MySystem`ctl.ctl_q <= M2) and (MySystem`ctl.ctl_q >= M1);
+    
+
+    public GetPosition : () ==> real
+    GetPosition() == duration(0) (
+        return env_q;
+    );
+
+    public GetVelocity : () ==> real
+    GetVelocity() == duration(0) (
+        return env_dq;
+    );
+
+    public SetVelocity : real ==> ()
+    SetVelocity(vel) == duration(0) (
+        env_dq := vel;
+    );
+
+end RobotArmEnvironment
