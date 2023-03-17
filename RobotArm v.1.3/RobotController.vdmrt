@@ -1,10 +1,12 @@
 class RobotController
 
 instance variables
-    public ctl_qt : real;   -- target angle
-    public ctl_q : real;    -- current angle (radians)
-    public ctl_dq : real;   -- derivative (velocity)
-    public K : real := 0; -- proportionality coefficient for updating velocity. Public for debugging needs
+    private ctl_qt : real;   -- target angle
+    private ctl_q : real;    -- current angle (radians)
+    private ctl_dq : real;   -- derivative (velocity)
+    private K : real := 0; -- proportionality coefficient for updating velocity. Public for debugging needs
+
+    private ctl_data_history : seq of (real*real*real*real*real);
 
 
 values
@@ -15,7 +17,6 @@ values
     M2 : real = (5*3.14)/9;             -- upper safety bound
     alpha : real = 2 * 3.14 / 180;      -- 2 degrees accept margin when near target
 
-
 operations
     public RobotController: () ==> RobotController
     RobotController() == (
@@ -24,6 +25,8 @@ operations
         ctl_dq :=0;
         ctl_q := 0;
         ctl_qt := 0;
+
+        ctl_data_history := [];
     );
 
     -- update velocity based on error
@@ -40,6 +43,8 @@ operations
 
         ctl_dq := (ctl_qt-ctl_q) * K; 
         MySystem`env.SetVelocity(ctl_dq);            -- change in environment is instantaneous
+
+        ctl_data_history := ctl_data_history ^ [mk_(time, ctl_qt, ctl_q, ctl_dq, K)];
     );
 
     -- set target angle method 
@@ -53,6 +58,27 @@ operations
     public MonitorArm : () ==> ()
     MonitorArm() == duration(0) (
         ctl_q := MySystem`env.GetPosition();
+    );
+
+    -- getter functions. at this point these are made pure to be able to call them in precondition of step
+    public pure GetPosition : () ==> real 
+    GetPosition() == (
+        return ctl_q;
+    );
+
+    public pure GetVelocity : () ==> real 
+    GetVelocity() == (
+        return ctl_dq;
+    );
+
+    public pure GetTarget : () ==> real 
+    GetTarget() == (
+        return ctl_qt;
+    );
+
+    public GetDataHistory : () ==> seq of (real*real*real*real*real)
+    GetDataHistory() == (
+        return ctl_data_history;
     );
 
 end RobotController
