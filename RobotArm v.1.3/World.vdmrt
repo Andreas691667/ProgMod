@@ -1,11 +1,8 @@
 class World
 
-instance variables
-    io : IO := new IO();
-
 operations
 
-    public Scenario1 : () ==> seq of (real*real*real*real*real*real*real*real)
+    public Scenario1 : () ==> (seq of (real*real*real*real*real | real*real*real))
     Scenario1() == (
         MySystem`ctl.SetTargetAngle(3.14/4);
         MySystem`ctl.UpdateVelocity();
@@ -17,7 +14,7 @@ operations
         return MySystem`env.GetDataHistory() ^ MySystem`ctl.GetDataHistory();
     );
     
-    public Scenario2 : () ==> seq of (real*real*real*real*real*real*real*real)
+    public Scenario2 : () ==> seq of (real*real*real*real*real | real*real*real)
     Scenario2() == (
         MySystem`ctl.SetTargetAngle(3.14/2);
         MySystem`ctl.UpdateVelocity();
@@ -26,7 +23,7 @@ operations
         return MySystem`env.GetDataHistory()^MySystem`ctl.GetDataHistory();
     );
 
-    public Scenario3 : () ==> seq of (real*real*real*real*real*real*real*real)
+    public Scenario3 : () ==> seq of (real*real*real*real*real | real*real*real)
     Scenario3() == (
         MySystem`ctl.SetTargetAngle(0);
         MySystem`ctl.UpdateVelocity();
@@ -35,7 +32,7 @@ operations
         return MySystem`env.GetDataHistory()^MySystem`ctl.GetDataHistory();
     );
 
-    public Scenario4 : () ==> seq of (real*real*real*real*real*real*real*real)
+    public Scenario4 : () ==> seq of (real*real*real*real*real | real*real*real)
     Scenario4() == (
         MySystem`ctl.SetTargetAngle(0.8);
         MySystem`ctl.UpdateVelocity();
@@ -47,21 +44,20 @@ operations
         return MySystem`env.GetDataHistory()^MySystem`ctl.GetDataHistory();
     );
 
-    public Scenario5 : () ==> seq of (real*real*real*real*real*real*real*real)
+    public Scenario5 : () ==> seq of (real*real*real*real*real | real*real*real)
     Scenario5() == (
-                MySystem`ctl.SetTargetAngle(3.14/8);
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(7);
-                MySystem`ctl.MonitorArm();
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(7);
-                MySystem`ctl.MonitorArm();
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(7);
-                MySystem`ctl.MonitorArm();
-        
+        MySystem`ctl.SetTargetAngle(3.14/8);
         MySystem`ctl.UpdateVelocity();
-        
+        MySystem`env.Step(7);
+        MySystem`ctl.MonitorArm();
+        MySystem`ctl.UpdateVelocity();
+        MySystem`env.Step(7);
+        MySystem`ctl.MonitorArm();
+        MySystem`ctl.UpdateVelocity();
+        MySystem`env.Step(7);
+        MySystem`ctl.MonitorArm();        
+        MySystem`ctl.UpdateVelocity();
+                    
         MySystem`env.Step(7);
         
         MySystem`ctl.MonitorArm();
@@ -83,18 +79,18 @@ operations
         return MySystem`env.GetDataHistory()^MySystem`ctl.GetDataHistory();
     );
 
-    public Scenario6 : () ==> seq of (real*real*real*real*real*real*real*real) 
+    public Scenario6 : () ==> seq of (real*real*real*real*real | real*real*real) 
     Scenario6() == (
-                MySystem`ctl.SetTargetAngle(3.14/4);
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(4);
-                MySystem`ctl.MonitorArm();
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(4);
-                MySystem`ctl.MonitorArm();
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(4);
-                MySystem`ctl.MonitorArm();
+        MySystem`ctl.SetTargetAngle(3.14/4);
+        MySystem`ctl.UpdateVelocity();
+        MySystem`env.Step(4);
+        MySystem`ctl.MonitorArm();
+        MySystem`ctl.UpdateVelocity();
+        MySystem`env.Step(4);
+        MySystem`ctl.MonitorArm();
+        MySystem`ctl.UpdateVelocity();
+        MySystem`env.Step(4);
+        MySystem`ctl.MonitorArm();
         
         MySystem`ctl.UpdateVelocity();
         
@@ -107,17 +103,17 @@ operations
         return MySystem`env.GetDataHistory()^MySystem`ctl.GetDataHistory();
     );
 
-    public Scenario7 : () ==> seq of (real*real*real*real*real*real*real*real)
+    public Scenario7 : () ==> seq of (real*real*real*real*real | real*real*real)
     Scenario7() == (
-                MySystem`ctl.SetTargetAngle(3.14/4);
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(10.2);
-                MySystem`ctl.MonitorArm();
-                MySystem`ctl.UpdateVelocity();
-                MySystem`env.Step(1);
-                MySystem`ctl.MonitorArm();
-                MySystem`ctl.UpdateVelocity();
-                return MySystem`env.GetDataHistory()^MySystem`ctl.GetDataHistory();
+        MySystem`ctl.SetTargetAngle(3.14/4);
+        MySystem`ctl.UpdateVelocity();
+        MySystem`env.Step(10.2);
+        MySystem`ctl.MonitorArm();
+        MySystem`ctl.UpdateVelocity();
+        MySystem`env.Step(1);
+        MySystem`ctl.MonitorArm();
+        MySystem`ctl.UpdateVelocity();
+        return MySystem`env.GetDataHistory()^MySystem`ctl.GetDataHistory();
     );
 
 end World
