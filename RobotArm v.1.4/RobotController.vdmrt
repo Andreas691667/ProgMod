@@ -4,7 +4,12 @@ instance variables
     private ctl_qt : real;   -- target angle
     private ctl_q : real;    -- current angle (radians)
     private ctl_dq : real;   -- derivative (velocity)
+    private ctl_ddq : real;  -- acceleration
     private K : real := 0; -- proportionality coefficient for updating velocity. Public for debugging needs
+    private tau : real := 0;    --torque [N*m]
+
+    private delta_time : real := 0;
+   
     io : IO := new IO();
 
 
@@ -16,11 +21,18 @@ values
     M2 : real = (5*3.14)/9;             -- upper safety bound
     alpha : real = 2 * 3.14 / 180;      -- 2 degrees accept margin when near target
 
+    m : real = 1.2;                     -- robot arm mass [kg]
+    r : real = 0.8;                     -- radius from center [m]        
+
+    Kp : real = 0;                      -- proportioanlity coefficient
+    Kd : real = 0;                      -- derivative coefficient          
+
 operations
     public RobotController: () ==> RobotController
     RobotController() == (
         
         -- initilialize variables
+        ctl_ddq := 0;
         ctl_dq :=0;
         ctl_q := 0;
         ctl_qt := 0;
@@ -42,6 +54,18 @@ operations
         MySystem`env.SetVelocity(ctl_dq);            -- change in environment is instantaneous
         
         PrintState(time);
+    );
+
+    public SetTorque : (real) ==> ()
+    SetTorque(DeltaTime) == duration(0) (
+        dcl e : real := ctl_qt - ctl_q;
+        dcl de : real := e/DeltaTime;
+        tau := Kp * de + Kd * de
+    );
+
+    public SetAcceleration : () ==> ()
+    SetAcceleration() == duration(0) (
+        skip;
     );
 
     public PrintState : (real) ==> ()
