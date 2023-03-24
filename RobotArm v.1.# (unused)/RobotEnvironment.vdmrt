@@ -28,11 +28,11 @@ operations
         PrintState(time);
     )
     pre TimeStep > 0 and                                                                    -- positive time 
-        (MySystem`ctl.GetTarget()  >= N1 and MySystem`ctl.GetTarget() <= N2) and           -- target angle within operation range
+        (MySystem`ctl.GetTarget()   >= N1 and MySystem`ctl.GetTarget() <= N2) and           -- target angle within operation range
         (MySystem`ctl.GetPosition() <= M2 and MySystem`ctl.GetPosition() >= M1) and         -- current angle within safety range
         (MySystem`ctl.GetVelocity() = 0 or 
         (TimeStep < (M2-MySystem`ctl.GetPosition())/abs(MySystem`ctl.GetVelocity()) and     -- Refer to assignment 2 for derivation
-        TimeStep  > (M1-MySystem`ctl.GetPosition())/abs(MySystem`ctl.GetVelocity())))        -- These gives upper bounds for the size of time step.         
+        TimeStep > (M1-MySystem`ctl.GetPosition())/abs(MySystem`ctl.GetVelocity())))        -- These gives upper bounds for the size of time step.         
 
     post (MySystem`ctl.GetPosition() <= M2) and (MySystem`ctl.GetPosition() >= M1);
     
