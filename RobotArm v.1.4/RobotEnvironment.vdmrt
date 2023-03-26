@@ -3,14 +3,16 @@ class RobotArmEnvironment
 instance variables
     private env_q : real;    -- current angle (radians)
     private env_dq : real;   -- derivative (velocity)
-    io : IO := new IO();
+    -- private final_sim_time : real;   -- Assign this in constructor. 
+    private last_time : real;
+    private io : IO := new IO();
 
 values
-    N1 : real = 0;          -- lower bound //operation range
-    N2 : real = 3.14/2;     -- upper bound //operation range
+    private N1 : real = 0;          -- lower bound //operation range
+    private N2 : real = 3.14/2;     -- upper bound //operation range
 
-    M1 : real = -10 * 3.14 / 180;   --lower safety bound (-10 degrees)
-    M2 : real = (5*3.14)/9;         -- upper bound (100 degrees) //safety limit
+    private M1 : real = -10 * 3.14 / 180;   --lower safety bound (-10 degrees)
+    private M2 : real = (5*3.14)/9;         -- upper bound (100 degrees) //safety limit
     
 
 operations
@@ -19,27 +21,37 @@ operations
         -- initialize variables
         env_q := 0;
         env_dq := 0;
+        last_time := 0;
     );
 
-    -- step function
-    public Step : (real) ==> ()
+
+    public Step : () ==> ()
+    Step() == duration(0) (
+        dcl t : real := time/1e9;
+        dcl timeStep : real := t - last_time;
+        Step(timeStep);
+        last_time := t;
+    );
+
+    -- step function private. Cannot access time in a pre-condition so we must pass it as a parameter. 
+    private Step : (real) ==> ()
     Step(TimeStep) == duration(0) (      
         env_q := env_q + env_dq * TimeStep;
         PrintState(time);
     )
     pre TimeStep > 0 and                                                                    -- positive time 
-        (MySystem`ctl.GetTarget()  >= N1 and MySystem`ctl.GetTarget() <= N2) and           -- target angle within operation range
+        (MySystem`ctl.GetTarget()  >= N1 and MySystem`ctl.GetTarget() <= N2) and            -- target angle within operation range
         (MySystem`ctl.GetPosition() <= M2 and MySystem`ctl.GetPosition() >= M1) and         -- current angle within safety range
         (MySystem`ctl.GetVelocity() = 0 or 
         (TimeStep < (M2-MySystem`ctl.GetPosition())/abs(MySystem`ctl.GetVelocity()) and     -- Refer to assignment 2 for derivation
-        TimeStep  > (M1-MySystem`ctl.GetPosition())/abs(MySystem`ctl.GetVelocity())))        -- These gives upper bounds for the size of time step.         
+        TimeStep  > (M1-MySystem`ctl.GetPosition())/abs(MySystem`ctl.GetVelocity())))       -- These gives upper bounds for the size of time step.         
 
     post (MySystem`ctl.GetPosition() <= M2) and (MySystem`ctl.GetPosition() >= M1);
     
-    public PrintState : (real) ==> ()
+    private PrintState : (real) ==> ()
     PrintState(time_) == duration(0) (
-        dcl str : seq of char := "env: \n";
-        str := str ^ VDMUtil`val2seq_of_char[real](time_);
+        dcl str : seq of char := "env: \n time, env_q, env_dq, \n";
+        str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](env_q);
         str := str ^ ",";
@@ -49,18 +61,26 @@ operations
     );
 
     public GetPosition : () ==> real
-    GetPosition() == duration(0) (
+    GetPosition() == duration(1e8) (
         return env_q;
     );
 
     public GetVelocity : () ==> real
-    GetVelocity() == duration(0) (
+    GetVelocity() == duration(1e8) (
         return env_dq;
     );
 
     public SetVelocity : real ==> ()
-    SetVelocity(vel) == duration(0) (
+    SetVelocity(vel) == duration(5e8) (
         env_dq := vel;
     );
+
+    -- public IsFinished : () ==> ()
+    -- IsFinished() == (
+    --     skip
+    -- );
+
+    -- sync 
+    --     per IsFinished => (time > final_sim_time)
 
 end RobotArmEnvironment

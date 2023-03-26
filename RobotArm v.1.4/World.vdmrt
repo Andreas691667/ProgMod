@@ -1,15 +1,25 @@
 class World
 
+instance variables
+    current_time : real := 0;
+    
 operations
+
+    private UpdateTimeStamp :() ==> ()
+    UpdateTimeStamp() == duration(0) (
+        current_time := time/1e9;
+    );
 
     public Scenario1 : () ==> bool
     Scenario1() == (
         MySystem`ctl.SetTargetAngle(3.14/4);
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(3);
+        duration(3e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(5);
+        duration(5e9)skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         return true;
     );
@@ -18,7 +28,7 @@ operations
     Scenario2() == (
         MySystem`ctl.SetTargetAngle(3.14/2);
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(20);
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         return true;
     );
@@ -27,7 +37,7 @@ operations
     Scenario3() == (
         MySystem`ctl.SetTargetAngle(0);
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(100);
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         return true;
     );
@@ -36,10 +46,10 @@ operations
     Scenario4() == (
         MySystem`ctl.SetTargetAngle(0.8);
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(5);
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(5);
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         return true;
     );
@@ -48,34 +58,30 @@ operations
     Scenario5() == (
         MySystem`ctl.SetTargetAngle(3.14/8);
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(7);
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(7);
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(7);
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();        
-        MySystem`ctl.UpdateVelocity();
-                    
-        MySystem`env.Step(7);
-        
+        MySystem`ctl.UpdateVelocity();          
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
-        
         MySystem`ctl.UpdateVelocity();
-        
-        MySystem`env.Step(7);
-        
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
-        
         MySystem`ctl.UpdateVelocity();
-        
-        MySystem`env.Step(7);
-        
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
-        
         MySystem`ctl.UpdateVelocity();
-        
         return true;
     );
 
@@ -83,23 +89,22 @@ operations
     Scenario6() == (
         MySystem`ctl.SetTargetAngle(3.14/4);
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(4);
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(4);
+        duration(7e9) skip;
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(4);
-        MySystem`ctl.MonitorArm();
-        
-        MySystem`ctl.UpdateVelocity();
-        
-        MySystem`env.Step(2);
-        
-        MySystem`ctl.MonitorArm();
-        
-        MySystem`ctl.UpdateVelocity();
-        
+        duration(7e9) skip;
+        MySystem`env.Step();
+        MySystem`ctl.MonitorArm();        
+        MySystem`ctl.UpdateVelocity();        
+        duration(7e9) skip;
+        MySystem`env.Step();        
+        MySystem`ctl.MonitorArm();        
+        MySystem`ctl.UpdateVelocity();        
         return true;
     );
 
@@ -107,10 +112,10 @@ operations
     Scenario7() == (
         MySystem`ctl.SetTargetAngle(3.14/4);
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(10.2);
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        MySystem`env.Step(1);
+        MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
         return true;

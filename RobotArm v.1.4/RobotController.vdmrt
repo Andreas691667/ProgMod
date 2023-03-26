@@ -5,21 +5,20 @@ instance variables
     private ctl_q : real;    -- current angle (radians)
     private ctl_dq : real;   -- derivative (velocity)
     private K : real := 0; -- proportionality coefficient for updating velocity. Public for debugging needs
-    io : IO := new IO();
+    private io : IO := new IO();
 
 
 values
-    N1 : real = 0;          -- lower bound //operation range
-    N2 : real = 3.14/2;     -- upper bound //operation range
+    private N1 : real = 0;          -- lower bound //operation range
+    private N2 : real = 3.14/2;     -- upper bound //operation range
 
-    M1 : real = -10*3.14 / 180;         -- lower safety bound
-    M2 : real = (5*3.14)/9;             -- upper safety bound
-    alpha : real = 2 * 3.14 / 180;      -- 2 degrees accept margin when near target
+    private M1 : real = -10*3.14 / 180;         -- lower safety bound
+    private M2 : real = (5*3.14)/9;             -- upper safety bound
+    private alpha : real = 2 * 3.14 / 180;      -- 2 degrees accept margin when near target
 
 operations
     public RobotController: () ==> RobotController
-    RobotController() == (
-        
+    RobotController() == (        
         -- initilialize variables
         ctl_dq :=0;
         ctl_q := 0;
@@ -28,7 +27,7 @@ operations
 
     -- update velocity based on error
     public UpdateVelocity : () ==> () 
-    UpdateVelocity() == duration(0) (
+    UpdateVelocity() == duration(5e8) (
         if (ctl_q <= M2 and ctl_q > N2) or (ctl_q >= M1 and ctl_q < N1)
         then 
             K := 0.1
@@ -44,10 +43,10 @@ operations
         PrintState(time);
     );
 
-    public PrintState : (real) ==> ()
+    private PrintState : (real) ==> ()
     PrintState(time_) == duration(0) (
-        dcl str : seq of char := "ctl: \n";
-        str := str ^ VDMUtil`val2seq_of_char[real](time_);
+        dcl str : seq of char := "ctl: \n time, ctl_q, ctl_dq, K, \n";
+        str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](ctl_q);
         str := str ^ ",";
@@ -60,14 +59,14 @@ operations
 
     -- set target angle method 
     public SetTargetAngle : (real) ==> () 
-    SetTargetAngle(theta) == duration(0) (
+    SetTargetAngle(theta) == duration(1E8) (
         ctl_qt := theta;
     )
     pre theta >= N1 and theta <= N2;
 
     -- Update variables from the environment. Duration probably not 0. 
     public MonitorArm : () ==> ()
-    MonitorArm() == duration(0) (
+    MonitorArm() == duration(1e8) (
         ctl_q := MySystem`env.GetPosition();
     );
 
