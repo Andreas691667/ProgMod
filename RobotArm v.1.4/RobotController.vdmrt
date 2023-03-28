@@ -45,7 +45,8 @@ operations
 
     private PrintState : (real) ==> ()
     PrintState(time_) == duration(0) (
-        dcl str : seq of char := "ctl: \n time, ctl_q, ctl_dq, K, \n";
+        dcl str : seq of char := "";
+        -- "ctl: \n time, ctl_q, ctl_dq, K, \n";
         str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](ctl_q);
@@ -53,7 +54,7 @@ operations
         str := str ^ VDMUtil`val2seq_of_char[real](ctl_dq);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](K);
-        str := str ^ "\n";
+        str := str ^ ",";
         def - = io.echo(str) in skip;
     );
 

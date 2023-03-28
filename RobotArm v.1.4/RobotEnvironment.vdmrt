@@ -50,13 +50,14 @@ operations
     
     private PrintState : (real) ==> ()
     PrintState(time_) == duration(0) (
-        dcl str : seq of char := "env: \n time, env_q, env_dq, \n";
+        dcl str : seq of char := "";
+        --  "env: \n time, env_q, env_dq, ,\n";
         str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](env_q);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](env_dq);
-        str := str ^ "\n";
+        str := str ^ ",\n";
         def - = io.echo(str) in skip;
     );
 
