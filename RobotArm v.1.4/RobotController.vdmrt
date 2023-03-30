@@ -38,14 +38,14 @@ operations
             K := 0;
 
         ctl_dq := (ctl_qt-ctl_q) * K; 
-        MySystem`env.SetVelocity(ctl_dq);            -- change in environment is instantaneous
+        MySystem`env.SetVelocity(ctl_dq);            -- change in environment
         
         PrintState(time);
     );
 
     private PrintState : (real) ==> ()
     PrintState(time_) == duration(0) (
-        dcl str : seq of char := "";
+        dcl str : seq of char := "CTL: \n";
         -- "ctl: \n time, ctl_q, ctl_dq, K, \n";
         str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
         str := str ^ ",";
@@ -54,7 +54,7 @@ operations
         str := str ^ VDMUtil`val2seq_of_char[real](ctl_dq);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](K);
-        str := str ^ ",";
+        str := str ^ " ; ";
         def - = io.echo(str) in skip;
     );
 
@@ -62,6 +62,7 @@ operations
     public SetTargetAngle : (real) ==> () 
     SetTargetAngle(theta) == duration(1E8) (
         ctl_qt := theta;
+        PrintState(time);
     )
     pre theta >= N1 and theta <= N2;
 
@@ -69,6 +70,7 @@ operations
     public MonitorArm : () ==> ()
     MonitorArm() == duration(1e8) (
         ctl_q := MySystem`env.GetPosition();
+        PrintState(time);
     );
 
     -- getter functions. at this point these are made pure to be able to call them in precondition of step

@@ -10,11 +10,29 @@ operations
         current_time := time/1e9;
     );
 
+    public Scenario0 : () ==> bool
+    Scenario0() == (
+        MySystem`ctl.SetTargetAngle(3.14/4);
+        MySystem`ctl.UpdateVelocity();
+        UpdateTimeStamp();
+        duration(3e9) skip;
+        MySystem`env.Step();
+        MySystem`ctl.MonitorArm();
+
+
+        return true;
+    );
+
+
     public Scenario1 : () ==> bool
     Scenario1() == (
         MySystem`ctl.SetTargetAngle(3.14/4);
         MySystem`ctl.UpdateVelocity();
         duration(3e9) skip;
+        MySystem`env.Step();
+        MySystem`ctl.MonitorArm();
+        MySystem`ctl.UpdateVelocity();
+        duration(5e9)skip;
         MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
@@ -46,9 +64,15 @@ operations
     Scenario4() == (
         MySystem`ctl.SetTargetAngle(0.8);
         MySystem`ctl.UpdateVelocity();
+        duration(5e9)skip;
         MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
+        duration(5e9)skip;
+        MySystem`env.Step();
+        MySystem`ctl.MonitorArm();
+         MySystem`ctl.UpdateVelocity();
+        duration(5e9)skip;
         MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         return true;
@@ -89,19 +113,19 @@ operations
     Scenario6() == (
         MySystem`ctl.SetTargetAngle(3.14/4);
         MySystem`ctl.UpdateVelocity();
-        duration(7e9) skip;
+        duration(4e9) skip;
         MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        duration(7e9) skip;
+        duration(4e9) skip;
         MySystem`env.Step();
         MySystem`ctl.MonitorArm();
         MySystem`ctl.UpdateVelocity();
-        duration(7e9) skip;
+        duration(4e9) skip;
         MySystem`env.Step();
         MySystem`ctl.MonitorArm();        
         MySystem`ctl.UpdateVelocity();        
-        duration(7e9) skip;
+        duration(2e9) skip;
         MySystem`env.Step();        
         MySystem`ctl.MonitorArm();        
         MySystem`ctl.UpdateVelocity();        

@@ -39,6 +39,7 @@ operations
         env_q := env_q + env_dq * TimeStep;
         PrintState(time);
     )
+
     pre TimeStep > 0 and                                                                    -- positive time 
         (MySystem`ctl.GetTarget()  >= N1 and MySystem`ctl.GetTarget() <= N2) and            -- target angle within operation range
         (MySystem`ctl.GetPosition() <= M2 and MySystem`ctl.GetPosition() >= M1) and         -- current angle within safety range
@@ -50,19 +51,19 @@ operations
     
     private PrintState : (real) ==> ()
     PrintState(time_) == duration(0) (
-        dcl str : seq of char := "";
+        dcl str : seq of char := "ENV: \n";
         --  "env: \n time, env_q, env_dq, ,\n";
         str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](env_q);
         str := str ^ ",";
         str := str ^ VDMUtil`val2seq_of_char[real](env_dq);
-        str := str ^ ",\n";
+        str := str ^ "\n";
         def - = io.echo(str) in skip;
     );
 
     public GetPosition : () ==> real
-    GetPosition() == duration(1e8) (
+    GetPosition() == duration(1e8) (    
         return env_q;
     );
 
@@ -74,6 +75,7 @@ operations
     public SetVelocity : real ==> ()
     SetVelocity(vel) == duration(5e8) (
         env_dq := vel;
+        PrintState(time);
     );
 
     -- public IsFinished : () ==> ()
