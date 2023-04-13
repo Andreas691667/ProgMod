@@ -1,0 +1,92 @@
+class RobotController
+
+instance variables
+    private ctl_t_pos : real;                   -- target angle
+    private ctl_pos : real;                     -- current angle (radians)
+    private ctl_vel : real;                     -- velocity
+    private io : IO := new IO();
+
+    private last_err : real;                    -- latest error value
+    private last_time : real;                   -- latest time value
+    private ctl_tau : real;                     -- 
+
+
+values
+    private N1 : real = 0;                      -- lower bound //operation range
+    private N2 : real = 3.14/2;                 -- upper bound //operation range
+
+    private M1 : real = -10*3.14 / 180;         -- lower safety bound
+    private M2 : real = (5*3.14)/9;             -- upper safety bound
+    private alpha : real = 2 * 3.14 / 180;      -- 2 degrees accept margin when near target
+
+    private Kp : real = 0.003;                    -- proportionality coefficient for updating velocity
+    private Kd : real = 0.04;                    -- derivative coeff.
+
+operations
+    public RobotController: () ==> RobotController
+    RobotController() == (        
+        -- initilialize variables
+        ctl_vel := 0;
+        ctl_pos := 0;
+        ctl_t_pos := 0;
+        ctl_tau := 0;
+        last_err := 0;
+        last_time := 0;
+    );
+
+    -- update velocity based on error
+    public UpdateTorque : () ==> () 
+    UpdateTorque() == duration(5e8) (
+        
+        dcl err : real := ctl_t_pos-ctl_pos;
+        dcl dt : real := time/1e9 - last_time;
+        dcl dq_err : real := (err - last_err)/dt;
+        
+        ctl_tau := Kp*err + Kd * dq_err;
+        MySystem`motor.SetTorque(ctl_tau);
+
+        last_err := err;
+        last_time := time/1e9;
+    );
+
+    private PrintState : (real) ==> ()
+    PrintState(time_) == duration(0) (
+        -- dcl str : seq of char := "CTL: \n";
+        -- "ctl: \n time, ctl_pos, ctl_vel, Kp, \n";
+        dcl str : seq of char := "";
+        str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](ctl_pos);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](ctl_tau);
+        str := str ^ "; \n";
+        def - = io.echo(str) in skip;
+    );
+
+    -- set target angle method 
+    public SetTargetAngle : (real) ==> () 
+    SetTargetAngle(theta) == duration(1E8) (
+        ctl_t_pos := theta;
+    )
+    pre theta >= N1 and theta <= N2;
+
+    -- Update variables from the environment. Duration probably not 0. 
+    public MonitorArm : () ==> ()
+    MonitorArm() == duration(1e8) (
+        ctl_pos := MySystem`sensor.ReadPosition();
+    );
+
+    private ControlLoop : () ==> ()
+    ControlLoop() == duration(0) (
+        -- PrintState(time);
+        MonitorArm();
+        -- PrintState(time);
+
+        UpdateTorque();  
+    );
+
+    thread
+        periodic(2e9,0,0,0)(ControlLoop);
+
+
+end RobotController

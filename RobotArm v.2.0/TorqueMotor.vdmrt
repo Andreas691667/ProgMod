@@ -1,0 +1,30 @@
+class TorqueMotor
+
+instance variables
+    tq_m : real;            --torque from motor  
+
+operations
+
+    public TorqueMotor : () ==> TorqueMotor
+    TorqueMotor() == (
+        tq_m := 0;
+    );
+
+    public SetTorque : real ==> ()
+    SetTorque(tau) == duration(2e8) (
+        tq_m := tau;        
+    );
+
+    public Step : () ==> ()
+    Step() == duration(0) (
+        MySystem`env.SetTorque(tq_m);
+        MySystem`env.AdjustArmPosition();
+    );
+
+    thread
+        periodic(1e8,0,0,0)(Step);
+
+    sync
+        mutex(SetTorque, Step);
+
+end TorqueMotor
