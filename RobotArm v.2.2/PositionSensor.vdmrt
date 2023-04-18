@@ -1,0 +1,43 @@
+class PositionSensor
+
+types
+    public STATE = <Failed> | <Normal>;
+
+instance variables
+    private ps_q : real;
+    private sensor_state : STATE;
+    
+operations
+    public PositionSensor: () ==> PositionSensor
+    PositionSensor() == (
+        ps_q := 0; 
+        sensor_state := <Normal>;
+    );
+
+    public ReadPosition: () ==> real
+    ReadPosition() == duration(1e9) (
+        return ps_q;
+    );
+
+    public GetSensorState : () ==> STATE
+    GetSensorState() == duration(1e8) (
+        return sensor_state;
+    );
+
+    public SensorFailed : () ==> ()
+    SensorFailed() == duration(1e8) (
+        sensor_state := <Failed>;
+    );    
+    
+    public Step: () ==> ()
+    Step() == duration(0) (
+        ps_q := MySystem`env.GetPosition();
+    );
+
+    thread
+        periodic(1e9,0,0,0)(Step);
+
+    sync
+        mutex(ReadPosition, Step);
+
+end PositionSensor

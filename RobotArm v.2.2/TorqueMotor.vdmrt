@@ -1,13 +1,18 @@
 class TorqueMotor
 
+types
+    public STATE = <Normal> | <Failed>;
+
 instance variables
-    tq_m : real;            --torque from motor  
+    private tq_m : real;            --torque from motor  
+    private motor_state : STATE;
 
 operations
 
     public TorqueMotor : () ==> TorqueMotor
     TorqueMotor() == (
         tq_m := 0;
+        motor_state := <Normal>;
     );
 
     public SetTorque : real ==> ()
@@ -20,6 +25,16 @@ operations
         return tq_m;
     );
 
+    public MotorFailed : () ==> ()
+    MotorFailed() == duration(1e8) (
+        motor_state := <Failed>;
+    );
+
+    public GetMotorState : () ==> STATE
+    GetMotorState() == duration(0) (
+        return motor_state;
+    );
+
     public Step : () ==> ()
     Step() == duration(0) (
         MySystem`env.SetTorque(tq_m);
@@ -30,6 +45,6 @@ operations
         periodic(1e8,0,0,0)(Step);
 
     sync
-        mutex(SetTorque, Step);
+        mutex(SetTorque, Step, GetTorque);
 
 end TorqueMotor

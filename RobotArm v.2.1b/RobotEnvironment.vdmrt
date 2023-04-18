@@ -1,6 +1,5 @@
 class RobotArmEnvironment
 
-
 instance variables
     private env_pos : real;                 -- current angle (radians)
     private env_vel : real;                 -- velocity

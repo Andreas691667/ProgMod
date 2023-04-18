@@ -1,5 +1,8 @@
 class RobotArmEnvironment
 
+types public Event = <SensorFail> | <MotorFail> | 
+                    <AlterTargetAngle> | <RepositionArm>  
+                    
 
 instance variables
     private env_pos : real;                 -- current angle (radians)
@@ -11,6 +14,7 @@ instance variables
     private env_tau : real;
     private tau_gravity : real := 0;        -- torque gravity [N*m] (assumed to be zero)
     private tau_friction : real := 0;       -- torque friction [N*m] (assumed to be zero)
+    public events : seq of (real * Event * real) := [];
 
 values
     private N1 : real = 0;                  -- lower bound //operation range
@@ -20,10 +24,7 @@ values
     private M2 : real = (5*3.14)/9;         -- upper bound (100 degrees) //safety limit
     private m : real = 1.2;                 -- robot arm mass [kg]
     private r : real = 0.8;                 -- robot arm length [m]
-    private I : real = m*r*r;               -- mass inertia [kg*m^2]
-    
-    
-    
+    private I : real = m*r*r;               -- mass inertia [kg*m^2]   
 
 operations
     public RobotArmEnvironment: () ==> RobotArmEnvironment
@@ -35,6 +36,27 @@ operations
         env_tau := 0;
         last_time := 0;
         final_sim_time := 0;
+    );
+
+
+    public AddEvent : real * Event * real ==> ()
+    AddEvent(t, e, d) == duration(0) (
+        events := events ^ [mk_(t,e,d)];
+    );
+
+    private CreateEvent : () ==> ()
+    CreateEvent() == duration(0) (
+        if len events > 0 then (
+            let mk_(event_time, event, event_data) = hd events
+            in if event_time <= time then (
+                if(event = <MotorFail>)             then MySystem`motor.MotorFailed()
+                else if(event = <SensorFail>)       then MySystem`sensor.SensorFailed()
+                else if(event = <AlterTargetAngle>) then skip 
+                else if(event = <RepositionArm>)    then env_pos := event_data;
+
+            events := tl events;   
+            )
+        ) 
     );
 
     public SetTorque : real ==> ()
@@ -50,8 +72,7 @@ operations
 
         env_vel := env_vel + env_acc * dt ;
 
-        env_pos := env_pos + env_vel * dt;     
-        
+        env_pos := env_pos + env_vel * dt;  
         
         PrintState(time); 
         
@@ -119,7 +140,11 @@ operations
     );
 
     sync 
-        per IsFinished => (time > final_sim_time)
+        per IsFinished => (time > final_sim_time);
+        mutex(CreateEvent);
+
+    thread
+        periodic(1e9, 0, 0, 0)(CreateEvent)
 
 
 end RobotArmEnvironment

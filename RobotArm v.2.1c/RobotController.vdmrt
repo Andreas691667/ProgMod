@@ -1,5 +1,6 @@
 class RobotController
 
+
 instance variables
     private ctl_t_pos : real;                   -- target angle
     private ctl_pos : real;                     -- current angle (radians)
@@ -11,7 +12,7 @@ instance variables
     private ctl_mode : MODES;                   -- 
 
 types
-    public MODES = <Initialization> | <Operating>;
+    public MODES = <Initialization> | <Operating> | <Stable> | <Shutdown> | <Emergency>;
 
 
 values
@@ -72,6 +73,12 @@ operations
     public MonitorArm : () ==> ()
     MonitorArm() == duration(1e8) (
         ctl_pos := MySystem`sensor.ReadPosition();
+        if (ctl_pos < ctl_t_pos + alpha and ctl_pos > ctl_t_pos - alpha)
+        then
+            ctl_mode := <Stable>
+        else
+            ctl_mode := <Operating>
+
     );
 
     public SetCtlMode : (MODES) ==> ()
@@ -90,6 +97,16 @@ operations
         ctl_mode := <Operating>;
     );
 
+    private ShutdownCtl : () ==> ()
+    ShutdownCtl() == duration(5e8) (
+        MySystem`motor.SetTorque(0);
+    );
+
+    private EmergencyStop : () ==> ()
+    EmergencyStop() == duration(5e8) (
+        MySystem`motor.SetTorque(0);
+    );
+
 
     private ControlLoop : () ==> ()
     ControlLoop() == duration(0) (
@@ -97,9 +114,19 @@ operations
         then 
             InitializeCtl()
         else if ctl_mode = <Operating>
-        then
+        then(
             MonitorArm();
-            UpdateTorque();  
+            UpdateTorque();
+            )
+        else if ctl_mode = <Stable>
+        then 
+            MonitorArm()
+        else if ctl_mode = <Shutdown>
+        then 
+            ShutdownCtl()
+        else if ctl_mode = <Emergency>
+        then 
+            EmergencyStop()
     );
 
     thread

@@ -1,6 +1,5 @@
 class World
 
-
 instance variables
     current_time : real := 0;
     
@@ -16,6 +15,8 @@ operations
         MySystem`env.SetFinalSimTime(200e9);
         MySystem`ctl.SetTargetAngle(3.14/2);
 
+        MySystem`env.AddEvent(0, <AlterTargetAngle>, 3.14/2);
+        
         start(MySystem`sensor);
         start(MySystem`motor);
         start(MySystem`ctl);

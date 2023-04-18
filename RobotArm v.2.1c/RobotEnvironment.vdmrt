@@ -1,6 +1,5 @@
 class RobotArmEnvironment
 
-
 instance variables
     private env_pos : real;                 -- current angle (radians)
     private env_vel : real;                 -- velocity
@@ -12,6 +11,7 @@ instance variables
     private tau_gravity : real := 0;        -- torque gravity [N*m] (assumed to be zero)
     private tau_friction : real := 0;       -- torque friction [N*m] (assumed to be zero)
 
+
 values
     private N1 : real = 0;                  -- lower bound //operation range
     private N2 : real = 3.14/2;             -- upper bound //operation range
@@ -22,7 +22,7 @@ values
     private r : real = 0.8;                 -- robot arm length [m]
     private I : real = m*r*r;               -- mass inertia [kg*m^2]
     
-    
+
     
 
 operations

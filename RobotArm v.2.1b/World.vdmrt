@@ -1,6 +1,5 @@
 class World
 
-
 instance variables
     current_time : real := 0;
     

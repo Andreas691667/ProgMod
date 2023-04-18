@@ -1,0 +1,30 @@
+class PositionSensor
+
+instance variables
+    ps_q : real;
+    
+values
+    
+operations
+    public PositionSensor: () ==> PositionSensor
+    PositionSensor() == (
+        ps_q := 0; 
+    );
+
+    public ReadPosition: () ==> real
+    ReadPosition() == duration(1e9) (
+        return ps_q;
+    );
+
+    public Step: () ==> ()
+    Step() == duration(0) (
+        ps_q := MySystem`env.GetPosition();
+    );
+
+    thread
+        periodic(1e9,0,0,0)(Step);
+
+    sync
+        mutex(ReadPosition, Step);
+
+end PositionSensor
