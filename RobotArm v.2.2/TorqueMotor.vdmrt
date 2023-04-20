@@ -41,6 +41,11 @@ operations
         MySystem`env.AdjustArmPosition();
     );
 
+    public SetMotorState : (STATE) ==> ()
+    SetMotorState(m) == duration(0) (
+        motor_state := m;
+    )
+
     thread
         periodic(1e8,0,0,0)(Step);
 

@@ -1,8 +1,8 @@
 class RobotController
 
-
+types public Event = <AlterTargetAngle>
 instance variables
-    private ctl_t_pos : real;                   -- target angle
+    private ctl_t_pos : real := 0;                   -- target angle
     private ctl_pos : real;                     -- current angle (radians)
     private io : IO := new IO();
 
@@ -10,6 +10,9 @@ instance variables
     private last_time : real;                   -- latest time value
     private ctl_tau : real;  
     private ctl_mode : MODES;                   -- 
+
+    public events : seq of (real * Event * real) := [];
+
 
 types
     public MODES = <Initialization> | <Operating> | <Stable> | <Shutdown> | <Emergency>;
@@ -32,6 +35,25 @@ operations
         -- initilialize variables
         ctl_mode := <Initialization>;
     );
+
+
+
+    public AddEvent : real * Event * real ==> ()
+    AddEvent(t, e, d) == duration(0) (
+        events := events ^ [mk_(t,e,d)];
+    );
+
+    public CreateEvent : () ==> ()
+    CreateEvent() == duration(0) (
+        if len events > 0 then (
+            let mk_(event_time, event, event_data) = hd events
+            in if event_time <= time then (
+                if(event = <AlterTargetAngle>)  then SetTargetAngle(event_data);
+            events := tl events;   
+            )
+        ) 
+    );
+
 
     -- update velocity based on error
     public UpdateTorque : () ==> () 
@@ -102,22 +124,27 @@ operations
         MySystem`motor.SetTorque(0);
     );
 
+        
     private EmergencyStop : () ==> ()
     EmergencyStop() == duration(5e8) (
         MySystem`motor.SetTorque(0);
     );
+    
 
 
     private ControlLoop : () ==> ()
     ControlLoop() == duration(0) (
+        CreateEvent();
         if ctl_mode = <Initialization> 
-        then 
+        then (
             if(MySystem`motor.GetMotorState() = <Failed> or MySystem`sensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)
-            else
-                InitializeCtl()
+            else (
+                InitializeCtl();
+            )
+        )
         else if ctl_mode = <Operating>
         then(
-            if(MySystem`motor.GetMotorState() = <Failed> or MySystem`sensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)            
+            if(MySystem`motor.GetMotorState() = <Failed> or MySystem`sensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)           
             else (
                 MonitorArm();
                 UpdateTorque();
@@ -133,12 +160,17 @@ operations
         then 
             ShutdownCtl()
         else if ctl_mode = <Emergency>
-        then 
-            EmergencyStop()
+        then (
+            EmergencyStop();
+        );
     );
 
+
+    sync
+        mutex(CreateEvent);
     thread
         periodic(3e9,0,0,0)(ControlLoop);
+        -- periodic(1e9,0,0,0)(CreateEvent); -- We would like to do this but are unable to. 
 
 
 end RobotController

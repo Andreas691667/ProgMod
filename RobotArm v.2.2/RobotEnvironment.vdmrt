@@ -1,7 +1,6 @@
 class RobotArmEnvironment
 
-types public Event = <SensorFail> | <MotorFail> | 
-                    <AlterTargetAngle> | <RepositionArm>  
+types public Event = <SensorFail> | <MotorFail> | <RepositionArm>  
                     
 
 instance variables
@@ -44,16 +43,14 @@ operations
         events := events ^ [mk_(t,e,d)];
     );
 
-    private CreateEvent : () ==> ()
+    public CreateEvent : () ==> ()
     CreateEvent() == duration(0) (
         if len events > 0 then (
             let mk_(event_time, event, event_data) = hd events
             in if event_time <= time then (
                 if(event = <MotorFail>)             then MySystem`motor.MotorFailed()
                 else if(event = <SensorFail>)       then MySystem`sensor.SensorFailed()
-                else if(event = <AlterTargetAngle>) then skip 
                 else if(event = <RepositionArm>)    then env_pos := event_data;
-
             events := tl events;   
             )
         ) 
@@ -67,10 +64,15 @@ operations
     public AdjustArmPosition : () ==> ()
     AdjustArmPosition() == duration(0) (
         -- q = q(t-1)*q'(t)*dt
+
         dcl dt : real := time/1e9 - last_time;
         env_acc := (env_tau + tau_gravity - tau_friction) / I;
-
-        env_vel := env_vel + env_acc * dt ;
+        
+        -- For now we do this as we have assumed friction to be zero and as such
+        -- the arm will never stop in the case of a failure 
+        -- (we can only set torque to 0 and friction/gravity are assumd to be 0 for now).
+        if(env_tau = 0) then env_vel := 0
+        else env_vel := env_vel + env_acc * dt;
 
         env_pos := env_pos + env_vel * dt;  
         
@@ -109,15 +111,15 @@ operations
         -- dcl str : seq of char := "ENV: \n";
         dcl str : seq of char := "";
         --  "env: \n time, env_pos, env_vel, ,\n";
-        str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
+        str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9); -- print time
         str := str ^ ",";
-        str := str ^ VDMUtil`val2seq_of_char[real](env_pos);
+        str := str ^ VDMUtil`val2seq_of_char[real](env_pos); -- print position
         str := str ^ ",";
-        str := str ^ VDMUtil`val2seq_of_char[real](env_tau);
+        str := str ^ VDMUtil`val2seq_of_char[real](env_tau); -- print torque
                 str := str ^ ",";
-        str := str ^ VDMUtil`val2seq_of_char[real](env_acc);
-                str := str ^ ",";
-        str := str ^ VDMUtil`val2seq_of_char[real](env_vel);
+        -- str := str ^ VDMUtil`val2seq_of_char[real](env_acc);
+                -- str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](env_vel); -- print velocity
         str := str ^ "\n";
         def - = io.echo(str) in skip;
     );
@@ -138,13 +140,14 @@ operations
     IsFinished() == (
         skip
     );
+    
 
     sync 
         per IsFinished => (time > final_sim_time);
         mutex(CreateEvent);
 
     thread
-        periodic(1e9, 0, 0, 0)(CreateEvent)
+        periodic(1e9, 0, 0, 0)(CreateEvent);
 
 
 end RobotArmEnvironment
