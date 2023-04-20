@@ -63,7 +63,6 @@ operations
         MySystem`env.SetFinalSimTime(200e9);
         MySystem`ctl.AddEvent(0, <AlterTargetAngle>, 3.14/2);
         MySystem`env.AddEvent(50e9, <SensorFail>, 0);
-
         
         start(MySystem`env);
         start(MySystem`sensor);
