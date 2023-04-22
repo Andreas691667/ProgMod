@@ -1,6 +1,9 @@
 class RobotController
 
-types public Event = <AlterTargetAngle>
+types 
+    public Event = <AlterTargetAngle> | <ShutdownController>;
+    public MODE = <Initialization> | <Operating> | <Stable> | <Shutdown> | <Emergency>;
+
 instance variables
     private ctl_t_pos : real := 0;                   -- target angle
     private ctl_pos : real;                     -- current angle (radians)
@@ -9,14 +12,9 @@ instance variables
     private last_err : real;                    -- latest error value
     private last_time : real;                   -- latest time value
     private ctl_tau : real;  
-    private ctl_mode : MODES;                   -- 
+    private ctl_mode : MODE;                   -- 
 
     public events : seq of (real * Event * real) := [];
-
-
-types
-    public MODES = <Initialization> | <Operating> | <Stable> | <Shutdown> | <Emergency>;
-
 
 values
     private N1 : real = 0;                      -- lower bound //operation range
@@ -48,7 +46,8 @@ operations
         if len events > 0 then (
             let mk_(event_time, event, event_data) = hd events
             in if event_time <= time then (
-                if(event = <AlterTargetAngle>)  then SetTargetAngle(event_data);
+                if(event = <AlterTargetAngle>)  then SetTargetAngle(event_data)
+                else if(event = <ShutdownController>) then SetCtlMode(<Shutdown>);
             events := tl events;   
             )
         ) 
@@ -103,7 +102,7 @@ operations
 
     );
 
-    public SetCtlMode : (MODES) ==> ()
+    private SetCtlMode : (MODE) ==> ()
     SetCtlMode(m) == duration(0) (
         ctl_mode := m;
     );
@@ -111,7 +110,7 @@ operations
     private InitializeCtl : () ==> ()
     InitializeCtl() == duration(5e8) (
         ctl_pos := MySystem`sensor.ReadPosition();
-        -- ctl_t_pos := ctl_pos;
+        ctl_t_pos := ctl_pos;
         ctl_tau := MySystem`motor.GetTorque();
         last_err := 0;
         last_time := 0;
@@ -153,8 +152,10 @@ operations
         else if ctl_mode = <Stable>
         then 
             if(MySystem`motor.GetMotorState() = <Failed> or MySystem`sensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)
-            else
-                MonitorArm()
+            else (
+                MonitorArm();
+                MySystem`motor.SetTorque(0);
+            )
 
         else if ctl_mode = <Shutdown>
         then 

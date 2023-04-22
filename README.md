@@ -13,4 +13,4 @@
 |v. 2.1a     | First iteration of implementing controller modes. Modes *Initialization* and *Operating* implemented. |
 |v. 2.1b     | Second iteration of implementing controller modes. Modes  *Initialization*, *Operating*, and *Stable* implemented. |
 |v. 2.1c     | Third iteration of implementing controller modes. Modes  *Initialization*, *Operating*, *Stable*, *Shutdown*, and *Emergency* implemented. |
-|v. 2.2      |Implemented environment events: *SensorFail, MotorFail, AlterTargetAngle,* and *RepositionArm*.      | 
+|v. 2.2      |Implemented environment events: *SensorFail, MotorFail,* and *RepositionArm* as well as controller events: *AlterTargetAngle* and *ShutdownController*.     | 
