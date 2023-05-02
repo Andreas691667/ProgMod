@@ -1,0 +1,184 @@
+class RobotController
+
+types 
+    public Event = <AlterTargetAngle> | <ShutdownController>;
+    public MODE = <Initialization> | <Operating> | <Stable> | <Shutdown> | <Emergency>;
+
+instance variables
+    private ctl_t_pos : real := 0;              -- target angle
+    private ctl_pos : real;                     -- current angle (radians)
+    private io : IO := new IO();
+
+    private last_err : real;                    -- latest error value
+    private last_time : real;                   -- latest time value
+    private ctl_tau : real;  
+    private ctl_mode : MODE;                    -- 
+    
+    private tau_gravity : real := 0;            -- torque from gravity
+
+    public events : seq of (real * Event * real) := [];
+
+values
+    private N1 : real = 0;                      -- lower bound //operation range
+    private N2 : real = 3.14/2;                 -- upper bound //operation range
+
+    private M1 : real = -10*3.14 / 180;         -- lower safety bound
+    private M2 : real = 100*3.14 / 180;          -- upper safety bound
+    private alpha : real = 0.5 * 3.14 / 180;    -- 0.5 degrees accept margin when near target
+
+    private Kp : real = 1.5;                    -- proportionality coefficient for updating velocity
+    private Kd : real = 2.1;                    -- derivative coeff.
+
+    private m : real = 1.2;                     -- robot arm mass [kg]
+    private r : real = 0.8;                     -- robot arm length [m]
+    private g : real = -9.82;                   -- gravity constant [m/s^2]
+
+operations
+    public RobotController: () ==> RobotController
+    RobotController() == (        
+        -- initilialize variables
+        ctl_mode := <Initialization>;
+    );
+
+    public AddEvent : real * Event * real ==> ()
+    AddEvent(t, e, d) == duration(0) (
+        events := events ^ [mk_(t,e,d)];
+    );
+
+    public CreateEvent : () ==> ()
+    CreateEvent() == duration(0) (
+        if len events > 0 then (
+            let mk_(event_time, event, event_data) = hd events
+            in if event_time <= time then (
+                if(event = <AlterTargetAngle>)  then SetTargetAngle(event_data)
+                else if(event = <ShutdownController>) then SetCtlMode(<Shutdown>);
+            events := tl events;   
+            )
+        ) 
+    );
+
+
+    -- update velocity based on error
+    public UpdateTorque : () ==> () 
+    UpdateTorque() == duration(1e7) (
+        
+        dcl err : real := ctl_t_pos-ctl_pos;
+        dcl dt : real := time/1e9 - last_time;
+        dcl dq_err : real := (err - last_err)/dt;
+        
+        tau_gravity := m*g*r*MATH`cos(ctl_pos);
+
+        ctl_tau := Kp*err + Kd * dq_err - tau_gravity;
+        MySystem`motor.SetTorque(ctl_tau);
+
+        last_err := err;
+        last_time := time/1e9;
+    );
+
+    private PrintState : (real) ==> ()
+    PrintState(time_) == duration(0) (
+        -- dcl str : seq of char := "CTL: \n";
+        -- "ctl: \n time, ctl_pos, ctl_vel, Kp, \n";
+        dcl str : seq of char := "";
+        str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](ctl_pos);
+        str := str ^ ",";
+        str := str ^ VDMUtil`val2seq_of_char[real](ctl_tau);
+        str := str ^ "; \n";
+        def - = io.echo(str) in skip;
+    );
+
+    -- set target angle method 
+    public SetTargetAngle : (real) ==> () 
+    SetTargetAngle(theta) == duration(1E8) (
+        ctl_t_pos := theta;
+    )
+    pre theta >= N1 and theta <= N2;
+
+    -- Update variables from the environment. Duration probably not 0. 
+    public MonitorArm : () ==> ()
+    MonitorArm() == duration(1e7) (
+        ctl_pos := MySystem`sensor.ReadPosition();
+        if (ctl_pos < ctl_t_pos + alpha and ctl_pos > ctl_t_pos - alpha)
+        then
+            SetCtlMode(<Stable>)
+        else
+            SetCtlMode(<Operating>)
+
+    );
+
+
+    private SetCtlMode : (MODE) ==> ()
+    SetCtlMode(m) == duration(0) (
+        ctl_mode := m;
+    );
+
+    private InitializeCtl : () ==> ()
+    InitializeCtl() == duration(1e7) (
+        ctl_pos := MySystem`sensor.ReadPosition();
+        ctl_t_pos := ctl_pos;
+        ctl_tau := MySystem`motor.GetTorque();
+        last_err := 0;
+        last_time := 0;
+
+        SetCtlMode(<Operating>);
+    );
+
+    private ShutdownCtl : () ==> ()
+    ShutdownCtl() == duration(1e7) (
+        MySystem`motor.LockMotor();
+    );
+
+        
+    private EmergencyStop : () ==> ()
+    EmergencyStop() == duration(1e7) (
+        MySystem`motor.SetTorque(0);
+    );
+    
+
+
+    private ControlLoop : () ==> ()
+    ControlLoop() == duration(0) (
+        CreateEvent();
+        if ctl_mode = <Initialization> 
+        then (
+            if(MySystem`motor.GetMotorState() = <Failed> or MySystem`sensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)
+            else (
+                InitializeCtl();
+            )
+        )
+        else if ctl_mode = <Operating>
+        then(
+            if(MySystem`motor.GetMotorState() = <Failed> or MySystem`sensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)           
+            else (
+                MonitorArm();
+                UpdateTorque();
+            )
+        )
+        else if ctl_mode = <Stable>
+        then 
+            if(MySystem`motor.GetMotorState() = <Failed> or MySystem`sensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)
+            else (
+                MonitorArm();
+                MySystem`motor.LockMotor();
+            )
+
+        else if ctl_mode = <Shutdown>
+        then 
+            ShutdownCtl()
+        else if ctl_mode = <Emergency>
+        then (
+            EmergencyStop();
+        );
+    );
+
+
+    sync
+        mutex(CreateEvent);
+    thread
+        periodic(2e8,0,0,0)(ControlLoop);
+        -- periodic(1e9,0,0,0)(CreateEvent); -- We would like to do this but are unable to. 
+
+
+end RobotController

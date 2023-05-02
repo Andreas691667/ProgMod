@@ -1,0 +1,121 @@
+class World
+
+instance variables
+    current_time : real := 0;
+    
+operations
+
+    private UpdateTimeStamp :() ==> ()
+    UpdateTimeStamp() == duration(0) (
+        current_time := time/1e9;
+    );
+
+    public Scenario0 : () ==> bool
+    Scenario0() == (
+
+        MySystem`env.SetFinalSimTime(10e9);
+        MySystem`ctl.AddEvent(1e9, <AlterTargetAngle>, 3.14/2);
+        
+        start(MySystem`env);
+        start(MySystem`sensor);
+        start(MySystem`motor);
+        start(MySystem`ctl);
+
+        MySystem`env.IsFinished();
+        return true;
+    );
+
+
+    public Scenario1 : () ==> bool
+    Scenario1() == (
+        MySystem`env.SetFinalSimTime(10e9);
+        MySystem`ctl.AddEvent(1e9, <AlterTargetAngle>, 3.14/2);
+        MySystem`env.AddEvent(2.5e9, <MotorFail>, 0);
+        
+        start(MySystem`env);
+        start(MySystem`sensor);
+        start(MySystem`motor);
+        start(MySystem`ctl);
+
+        MySystem`env.IsFinished();
+        return true;
+    );
+
+    public Scenario2 : () ==> bool
+    Scenario2() == (
+        MySystem`env.SetFinalSimTime(10e9);
+        MySystem`ctl.AddEvent(1e9, <AlterTargetAngle>, 3.14/2);
+        MySystem`env.AddEvent(4e9, <RepositionArm>, 0.1);
+
+        start(MySystem`env);
+        start(MySystem`sensor);
+        start(MySystem`motor);
+        start(MySystem`ctl);
+
+        MySystem`env.IsFinished();
+        return true;
+    );
+
+    public Scenario3 : () ==> bool
+    Scenario3() == (
+        MySystem`env.SetFinalSimTime(10e9);
+        MySystem`ctl.AddEvent(1e9, <AlterTargetAngle>, 3.14/2);
+        MySystem`env.AddEvent(2e9, <SensorFail>, 0);
+        
+        start(MySystem`env);
+        start(MySystem`sensor);
+        start(MySystem`motor);
+        start(MySystem`ctl);
+
+        MySystem`env.IsFinished();
+        return true;
+    );
+
+    public Scenario4 : () ==> bool
+    Scenario4() == (
+        MySystem`env.SetFinalSimTime(15e9);
+        MySystem`ctl.AddEvent(1e9, <AlterTargetAngle>, 3.14/2);
+        MySystem`ctl.AddEvent(4e9, <AlterTargetAngle>, 3.14/4);
+        
+        start(MySystem`env);
+        start(MySystem`sensor);
+        start(MySystem`motor);
+        start(MySystem`ctl);
+
+        MySystem`env.IsFinished();
+        return true;
+    );
+
+    public Scenario5 : () ==> bool
+    Scenario5() == (
+        MySystem`env.SetFinalSimTime(10e9);
+        MySystem`ctl.AddEvent(1e9, <AlterTargetAngle>, 3.14/4);
+        MySystem`ctl.AddEvent(2e9, <ShutdownController>, -1);
+        
+        start(MySystem`env);
+        start(MySystem`sensor);
+        start(MySystem`motor);
+        start(MySystem`ctl);
+
+        MySystem`env.IsFinished();
+        return true;
+    );
+
+    -- public Scenario1 : () ==> bool
+    -- Scenario1() == (
+    --     MySystem`env.SetFinalSimTime(200e9);
+    --     MySystem`ctl.SetTargetAngle(3.14/4);
+
+        
+    --     start(MySystem`env);
+    --     start(MySystem`sensor);
+    --     start(MySystem`motor);
+    --     start(MySystem`ctl);
+
+    --     MySystem`env.IsFinished();
+    --     return true;
+    -- );
+
+
+
+end World
