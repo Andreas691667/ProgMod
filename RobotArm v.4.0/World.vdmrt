@@ -1,0 +1,16 @@
+class World
+
+operations
+    public run : () ==> ()
+    run() == (
+        start(System`ctl);
+        block();
+    );
+
+    private block : () ==> ()
+    block() == skip;
+
+    sync 
+        per block => false;
+
+end World

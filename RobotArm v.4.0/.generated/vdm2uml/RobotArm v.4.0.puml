@@ -1,0 +1,211 @@
+@startuml RobotArm v.4.0
+
+hide empty members
+skinparam Shadowing false
+skinparam classAttributeIconSize 0
+skinparam ClassBorderThickness 0.5
+skinparam groupInheritance 5
+skinparam class {
+	BackgroundColor AntiqueWhite
+	ArrowColor Black
+	BorderColor Black
+}
+skinparam defaultTextAlignment center
+
+class CPU
+{
+	+CPU(<FCFS> | <FP>, real) : CPU
+	+deploy(?)
+	+deploy(?, seq of char)
+	+setPriority(?, nat)
+}
+
+class BUS
+{
+	+BUS(<CSMACD> | <FCFS>, real, set of CPU) : BUS
+}
+
+class IO
+{
+	+filedirective : <append> | <start> <<type>>
+	+writeval(@p) : bool <<function>>
+	+fwriteval(seq1 of char, @p, filedirective) : bool <<function>>
+	+freadval(seq1 of char) : bool * [@p] <<function>>
+	+echo(seq of char) : bool
+	+fecho(seq of char, seq of char, [filedirective]) : bool
+	+ferror() : seq of char
+	+print(?)
+	+println(?)
+	+printf(seq of char, seq of ?)
+}
+
+class MATH
+{
+	+sin(real) : real <<function>>
+	+cos(real) : real <<function>>
+	+tan(real) : real <<function>>
+	+cot(real) : real <<function>>
+	+asin(real) : real <<function>>
+	+acos(real) : real <<function>>
+	+atan(real) : real <<function>>
+	+acot(real) : real <<function>>
+	+sqrt(real) : real <<function>>
+	+pi_f() : real <<function>>
+	+srand(int)
+	+rand(int) : int
+	+srand2(int) : int
+	+exp(real) : real <<function>>
+	+ln(real) : real <<function>>
+	+log(real) : real <<function>>
+	+fac(nat) : nat1 <<function>>
+	+pi : real <<value>>
+	-euler : real <<value>>
+}
+
+class VDMUtil
+{
+	+set2seq(set of @T) : seq of @T <<function>>
+	+get_file_pos() : [****] <<function>>
+	+val2seq_of_char(@T) : seq of char <<function>>
+	+seq_of_char2val(seq1 of char) : bool * [@p] <<function>>
+	+classname(@T) : [seq1 of char] <<function>>
+}
+
+class MySystem
+{
+	+env : RobotArmEnvironment
+	+ctl : RobotController
+	+motor : TorqueMotor
+	+sensor : PositionSensor
+	-cpu1 : CPU
+	-cpu2 : CPU
+	-cpu3 : CPU
+	-cpu4 : CPU
+	-bus1 : BUS
+	-bus2 : BUS
+	-bus3 : BUS
+	-bus4 : BUS
+	+MySystem() : MySystem
+}
+
+class PositionSensor
+{
+	+STATE : <Failed> | <Normal> <<type>>
+	-ps_q : real
+	-sensor_state : STATE
+	+PositionSensor() : PositionSensor
+	+ReadPosition() : real
+	+GetSensorState() : STATE
+	+SensorFailed()
+	+Step()
+}
+
+class RobotController
+{
+	+Event : <AlterTargetAngle> | <ShutdownController> <<type>>
+	+MODE : |||| <<type>>
+	-ctl_t_pos : real
+	-ctl_pos : real
+	-io : IO
+	-last_err : real
+	-last_time : real
+	-ctl_tau : real
+	-ctl_mode : MODE
+	-tau_gravity : real
+	+events : seq of **
+	-N1 : real <<value>>
+	-N2 : real <<value>>
+	-M1 : real <<value>>
+	-M2 : real <<value>>
+	-alpha : real <<value>>
+	-Kp : real <<value>>
+	-Kd : real <<value>>
+	-m : real <<value>>
+	-r : real <<value>>
+	-g : real <<value>>
+	+RobotController() : RobotController
+	+AddEvent(real, Event, real)
+	+CreateEvent()
+	+UpdateTorque()
+	-PrintState(real)
+	+SetTargetAngle(real)
+	+MonitorArm()
+	-SetCtlMode(MODE)
+	-InitializeCtl()
+	-ShutdownCtl()
+	-EmergencyStop()
+	-ControlLoop()
+}
+
+class RobotArmEnvironment
+{
+	+Event : <MotorFail> | <RepositionArm> | <SensorFail> <<type>>
+	-env_pos : real
+	-env_vel : real
+	-final_sim_time : real
+	-last_time : real
+	-io : IO
+	-env_acc : real
+	-env_tau : real
+	-tau_gravity : real
+	-tau_friction : real
+	+events : seq of **
+	-N1 : real <<value>>
+	-N2 : real <<value>>
+	-M1 : real <<value>>
+	-M2 : real <<value>>
+	-m : real <<value>>
+	-r : real <<value>>
+	-I : real <<value>>
+	-g : real <<value>>
+	-Fc : real <<value>>
+	-Fv : real <<value>>
+	+RobotArmEnvironment() : RobotArmEnvironment
+	+AddEvent(real, Event, real)
+	+CreateEvent()
+	+SetTorque(real)
+	-sinh(real) : real
+	-cosh(real) : real
+	-tanh(real) : real
+	+AdjustArmPosition()
+	-PrintState(real)
+	+GetPosition() : real
+	+SetFinalSimTime(real)
+	+IsFinished()
+}
+
+class TorqueMotor
+{
+	+STATE : <Failed> | <Normal> <<type>>
+	-tq_m : real
+	-motor_state : STATE
+	+TorqueMotor() : TorqueMotor
+	+SetTorque(real)
+	+GetTorque() : real
+	+MotorFailed()
+	+GetMotorState() : STATE
+	+LockMotor()
+	+Step()
+	+SetMotorState(STATE)
+}
+
+class World
+{
+	-current_time : real
+	-UpdateTimeStamp()
+	+Scenario0() : bool
+	+Scenario1() : bool
+	+Scenario2() : bool
+	+Scenario3() : bool
+	+Scenario4() : bool
+	+Scenario5() : bool
+}
+
+class HardwareInterface
+{
+	+position : (unresolved HardwareInterface`RealPort)
+	+torque : (unresolved HardwareInterface`RealPort)
+}
+
+
+@enduml

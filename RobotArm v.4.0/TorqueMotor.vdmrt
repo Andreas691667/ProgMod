@@ -1,0 +1,52 @@
+class TorqueMotor
+
+types
+    public STATE = <Normal> | <Failed>;
+
+instance variables
+    port : RealPort;
+    private tq_m : real;            --torque from motor  
+    private motor_state : STATE;
+
+operations
+
+    public TorqueMotor : () ==> TorqueMotor
+    TorqueMotor() == (
+        tq_m := 0;
+        motor_state := <Normal>;
+    );
+
+    public SetTorque : real ==> ()
+    SetTorque(tau) == duration(1e5) (
+        port.setValue(tau);        
+    );
+
+    public GetTorque : () ==> real
+    GetTorque() == duration(1e4) (
+        return tq_m;
+    );
+
+    public MotorFailed : () ==> ()
+    MotorFailed() == duration(1e8) (
+        motor_state := <Failed>;
+    );
+
+    public GetMotorState : () ==> STATE
+    GetMotorState() == duration(1e4) (
+        return motor_state;
+    );
+
+    public LockMotor : () ==> ()
+    LockMotor() == duration(1e6) (
+        tq_m := 0;
+    );
+
+    public SetMotorState : (STATE) ==> ()
+    SetMotorState(m) == duration(0) (
+        motor_state := m;
+    )
+
+    sync
+        mutex(SetTorque, GetTorque, LockMotor);
+
+end TorqueMotor

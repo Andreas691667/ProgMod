@@ -1,0 +1,12 @@
+class HardwareInterface
+
+values
+    
+instance variables
+    -- @ interface: type = input, name="sensor";
+    public position : RealPort := new RealPort(0.0);
+
+    -- @ interface: type = output, name="motor";
+    public torque : RealPort := new RealPort(0.0);     
+
+end HardwareInterface
