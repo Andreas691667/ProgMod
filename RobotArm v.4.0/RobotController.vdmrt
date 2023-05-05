@@ -8,7 +8,6 @@ instance variables
     positionSensor : PositionSensor;
     torqueMotor : TorqueMotor;
 
-    private ctl_t_pos : real := 0;              -- target angle
     private ctl_pos : real;                     -- current angle (radians)
     private io : IO := new IO();
 
@@ -67,7 +66,7 @@ operations
     public UpdateTorque : () ==> () 
     UpdateTorque() == duration(1e7) (
         
-        dcl err : real := ctl_t_pos-ctl_pos;
+        dcl err : real := HardwareInterface`targetAngle.getValue()-ctl_pos;
         dcl dt : real := time/1e9 - last_time;
         dcl dq_err : real := (err - last_err)/dt;
         
@@ -80,24 +79,10 @@ operations
         last_time := time/1e9;
     );
 
-    private PrintState : (real) ==> ()
-    PrintState(time_) == duration(0) (
-        -- dcl str : seq of char := "CTL: \n";
-        -- "ctl: \n time, ctl_pos, ctl_vel, Kp, \n";
-        dcl str : seq of char := "";
-        str := str ^ VDMUtil`val2seq_of_char[real](time_/1e9);
-        str := str ^ ",";
-        str := str ^ VDMUtil`val2seq_of_char[real](ctl_pos);
-        str := str ^ ",";
-        str := str ^ VDMUtil`val2seq_of_char[real](ctl_tau);
-        str := str ^ "; \n";
-        def - = io.echo(str) in skip;
-    );
-
     -- set target angle method 
     public SetTargetAngle : (real) ==> () 
     SetTargetAngle(theta) == duration(1E8) (
-        ctl_t_pos := theta;
+        HardwareInterface`targetAngle.setValue(theta);
     )
     pre theta >= N1 and theta <= N2;
 
@@ -105,7 +90,7 @@ operations
     public MonitorArm : () ==> ()
     MonitorArm() == duration(1e7) (
         ctl_pos := positionSensor.GetPosition();
-        if (ctl_pos < ctl_t_pos + alpha and ctl_pos > ctl_t_pos - alpha)
+        if (ctl_pos < HardwareInterface`targetAngle.getValue() + alpha and ctl_pos > HardwareInterface`targetAngle.getValue() - alpha)
         then
             SetCtlMode(<Stable>)
         else
@@ -115,15 +100,13 @@ operations
 
 
     private SetCtlMode : (MODE) ==> ()
-    SetCtlMode(m) == duration(0) (
-        ctl_mode := m;
+    SetCtlMode(mode) == duration(0) (
+        ctl_mode := mode;
     );
 
     private InitializeCtl : () ==> ()
     InitializeCtl() == duration(1e7) (
         ctl_pos := positionSensor.GetPosition();
-        ctl_t_pos := ctl_pos;
-        ctl_tau := torqueMotor.GetTorque();
         last_err := 0;
         last_time := 0;
 
@@ -148,14 +131,14 @@ operations
         CreateEvent();
         if ctl_mode = <Initialization> 
         then (
-            if(torqueMotor.GetMotorState() = <Failed> or positionSensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)
+            if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
             else (
                 InitializeCtl();
             )
         )
         else if ctl_mode = <Operating>
         then(
-            if(torqueMotor.GetMotorState() = <Failed> or positionSensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)           
+            if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)           
             else (
                 MonitorArm();
                 UpdateTorque();
@@ -163,7 +146,7 @@ operations
         )
         else if ctl_mode = <Stable>
         then 
-            if(torqueMotor.GetMotorState() = <Failed> or positionSensor.GetSensorState() = <Failed>) then SetCtlMode(<Emergency>)
+            if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
             else (
                 MonitorArm();
                 torqueMotor.LockMotor();

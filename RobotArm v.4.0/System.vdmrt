@@ -12,8 +12,9 @@ operations
 
   public System: () ==> System
   System() == (
-    motor := new TorqueMotor();
-    sensor := new PositionSensor();
+    motor := new TorqueMotor(hwi.torque, hwi.motorState);
+    sensor := new PositionSensor(hwi.position, hwi.sensorState);
+    
     ctl := new RobotController(sensor, motor);
 
 

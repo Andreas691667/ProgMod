@@ -1,35 +1,29 @@
 class PositionSensor
 
-types
-    public STATE = <Failed> | <Normal>;
-
 instance variables
-    port : RealPort;
-    private ps_q : real;
-    private sensor_state : STATE;
+    positionPort : RealPort;
+    statePort: StringPort;
     
 operations
-    public PositionSensor: RealPort ==> PositionSensor
-    PositionSensor(rp) == (
-        port := rp; 
+    public PositionSensor: RealPort*StringPort ==> PositionSensor
+    PositionSensor(rp, sp) == (
+        positionPort := rp;
+        statePort := sp;
     );
 
     public GetPosition: () ==> real
     GetPosition() == duration(1e7) (
-        return port.getValue();
+        return positionPort.getValue();
     );
 
-    public GetSensorState : () ==> STATE
+    public GetSensorState : () ==> seq of char
     GetSensorState() == duration(0) (
-        return sensor_state;
+        return statePort.getValue();
     );
 
     public SensorFailed : () ==> ()
     SensorFailed() == duration(1e8) (
-        sensor_state := <Failed>;
+        statePort.setValue("Failed");
     );    
-
-    sync
-        mutex(GetPosition);
 
 end PositionSensor

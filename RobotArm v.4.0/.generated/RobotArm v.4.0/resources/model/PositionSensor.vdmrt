@@ -1,0 +1,29 @@
+class PositionSensor
+
+instance variables
+    positionPort : RealPort;
+    statePort: StringPort;
+    
+operations
+    public PositionSensor: RealPort*StringPort ==> PositionSensor
+    PositionSensor(rp, sp) == (
+        positionPort := rp;
+        statePort := sp;
+    );
+
+    public GetPosition: () ==> real
+    GetPosition() == duration(1e7) (
+        return positionPort.getValue();
+    );
+
+    public GetSensorState : () ==> seq of char
+    GetSensorState() == duration(0) (
+        return statePort.getValue();
+    );
+
+    public SensorFailed : () ==> ()
+    SensorFailed() == duration(1e8) (
+        statePort.setValue("Failed");
+    );    
+
+end PositionSensor

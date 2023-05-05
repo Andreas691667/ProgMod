@@ -1,0 +1,35 @@
+class TorqueMotor
+
+instance variables
+    torquePort : RealPort;
+    statePort : StringPort;
+
+operations
+
+    public TorqueMotor : RealPort*StringPort ==> TorqueMotor
+    TorqueMotor(rp, sp) == (
+        torquePort := rp;
+        statePort := sp;
+    );
+
+    public SetTorque : real ==> ()
+    SetTorque(tau) == duration(1e5) (
+        torquePort.setValue(tau);        
+    );
+
+    public MotorFailed : () ==> ()
+    MotorFailed() == duration(1e8) (
+        statePort.setValue("Failed");
+    );
+
+    public GetMotorState : () ==> seq of char
+    GetMotorState() == duration(1e4) (
+        return statePort.getValue();
+    );
+
+    public LockMotor : () ==> ()
+    LockMotor() == duration(1e6) (
+        torquePort.setValue(0);
+    );
+
+end TorqueMotor

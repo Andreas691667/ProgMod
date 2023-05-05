@@ -1,11 +1,16 @@
 class HardwareInterface
 
 values
+    -- @ interface: type = parameter, name="targetAngle";
+    public targetAngle : RealPort = new RealPort(0.0);
     
 instance variables
     -- @ interface: type = input, name="sensor";
     public position : RealPort := new RealPort(0.0);
-
+    -- @ interface: type = input, name="sensorState";
+    public sensorState : StringPort := new StringPort("");
+    -- @ interface: type = input, name="motorState";
+    public motorState : StringPort := new StringPort("");
     -- @ interface: type = output, name="motor";
     public torque : RealPort := new RealPort(0.0);     
 
