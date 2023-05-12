@@ -12,7 +12,7 @@ operations
     );
 
     public GetPosition: () ==> real
-    GetPosition() == duration(1e7) (
+    GetPosition() == duration(0) (
         return positionPort.getValue();
     );
 
@@ -22,7 +22,7 @@ operations
     );
 
     public SensorFailed : () ==> ()
-    SensorFailed() == duration(1e8) (
+    SensorFailed() == duration(0) (
         statePort.setValue("Failed");
     );    
 

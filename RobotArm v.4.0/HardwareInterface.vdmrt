@@ -3,6 +3,12 @@ class HardwareInterface
 values
     -- @ interface: type = parameter, name="targetAngle";
     public targetAngle : RealPort = new RealPort(0.0);
+    -- @ interface: type = parameter, name="controllerActive";
+    public controllerActive : BoolPort = new BoolPort(false);
+    -- @ interface: type = parameter, name="Kp";
+    public Kp : RealPort = new RealPort(0.0);
+    -- @ interface: type = parameter, name="Kd";
+    public Kd : RealPort = new RealPort(0.0);
     
 instance variables
     -- @ interface: type = input, name="sensor";

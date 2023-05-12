@@ -1,0 +1,1 @@
+{"fmus":{"{RobotArm}":"robot.fmu","{Controller}":"RobotArm v.4.0.fmu"},"connections":{"{RobotArm}.env.theta":["{Controller}.ctl.sensor"],"{Controller}.ctl.motor":["{RobotArm}.env.u"]},"parameters":{"{Controller}.ctl.targetAngle":1,"{Controller}.ctl.controllerActive":true,"{Controller}.ctl.Kd":0,"{Controller}.ctl.Kp":0}}

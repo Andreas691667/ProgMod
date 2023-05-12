@@ -15,8 +15,7 @@ operations
     motor := new TorqueMotor(hwi.torque, hwi.motorState);
     sensor := new PositionSensor(hwi.position, hwi.sensorState);
     
-    ctl := new RobotController(sensor, motor);
-
+    ctl := new RobotController(sensor, motor, hwi.controllerActive, hwi.Kp, hwi.Kd);
 
     cpu1.deploy(ctl, "Controller");
   );

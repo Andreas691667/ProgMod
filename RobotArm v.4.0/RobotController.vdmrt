@@ -6,13 +6,14 @@ types
 instance variables
     positionSensor : PositionSensor;
     torqueMotor : TorqueMotor;
+    controllerActive : BoolPort;
+    Kp : RealPort;
+    Kd : RealPort;
 
-    public controller_active : bool := true;    -- controller active flag
-
-    private ctl_pos : real;                     -- current angle (radians)
-    private last_err : real;                    -- latest error value
-    private last_time : real;                   -- latest time value
-    private ctl_tau : real;  
+    private ctl_pos : real := 0;                     -- current angle (radians)
+    private last_err : real := 0;                    -- latest error value
+    private last_time : real := 0;                   -- latest time value
+    private ctl_tau : real := 0;  
     private ctl_mode : MODE;                    -- 
     
     private tau_gravity : real := 0;            -- torque from gravity
@@ -25,33 +26,33 @@ values
     private M2 : real = 100*3.14 / 180;          -- upper safety bound
     private alpha : real = 0.5 * 3.14 / 180;    -- 0.5 degrees accept margin when near target
 
-    private Kp : real = 1.5;                    -- proportionality coefficient for updating velocity
-    private Kd : real = 2.1;                    -- derivative coeff.
-
     private m : real = 1.2;                     -- robot arm mass [kg]
     private r : real = 0.8;                     -- robot arm length [m]
     private g : real = -9.82;                   -- gravity constant [m/s^2]
 
 operations
-    public RobotController: PositionSensor*TorqueMotor ==> RobotController
-    RobotController(p, t) == (        
+    public RobotController: PositionSensor*TorqueMotor*BoolPort*RealPort*RealPort ==> RobotController
+    RobotController(p, t, c, kp_in, kd_in) == (        
         -- initilialize variables
         positionSensor := p;
         torqueMotor := t;
+        controllerActive := c;
+        Kp := kp_in;
+        Kd := kd_in;
         ctl_mode := <Initialization>;
     );
 
     -- update velocity based on error
     public UpdateTorque : () ==> () 
-    UpdateTorque() == duration(1e7) (
+    UpdateTorque() == duration(0) (
         
         dcl err : real := HardwareInterface`targetAngle.getValue()-ctl_pos;
         dcl dt : real := time/1e9 - last_time;
-        dcl dq_err : real := (err - last_err)/dt;
+        dcl dq_err : real := (err - last_err)/1;
         
         tau_gravity := m*g*r*MATH`cos(ctl_pos);
 
-        ctl_tau := Kp*err + Kd * dq_err - tau_gravity;
+        ctl_tau := Kp.getValue()*err + Kd.getValue() * 1 - tau_gravity;
         torqueMotor.SetTorque(ctl_tau);
 
         last_err := err;
@@ -60,14 +61,14 @@ operations
 
     -- set target angle method 
     public SetTargetAngle : (real) ==> () 
-    SetTargetAngle(theta) == duration(1E8) (
+    SetTargetAngle(theta) == duration(0) (
         HardwareInterface`targetAngle.setValue(theta);
     )
     pre theta >= N1 and theta <= N2;
 
     -- Update variables from the environment. Duration probably not 0. 
     public MonitorArm : () ==> ()
-    MonitorArm() == duration(1e7) (
+    MonitorArm() == duration(0) (
         ctl_pos := positionSensor.GetPosition();
         if (ctl_pos < HardwareInterface`targetAngle.getValue() + alpha and ctl_pos > HardwareInterface`targetAngle.getValue() - alpha)
         then
@@ -83,7 +84,7 @@ operations
     );
 
     private InitializeCtl : () ==> ()
-    InitializeCtl() == duration(1e7) (
+    InitializeCtl() == duration(0) (
         ctl_pos := positionSensor.GetPosition();
         last_err := 0;
         last_time := 0;
@@ -92,57 +93,63 @@ operations
     );
 
     private ShutdownCtl : () ==> ()
-    ShutdownCtl() == duration(1e7) (
+    ShutdownCtl() == duration(0) (
         torqueMotor.LockMotor();
     );
         
     private EmergencyStop : () ==> ()
-    EmergencyStop() == duration(1e7) (
+    EmergencyStop() == duration(0) (
         torqueMotor.SetTorque(0);
     );
 
     private ControlLoop : () ==> ()
-    ControlLoop() == cycles(2) (
-        if controller_active = false 
+    ControlLoop() == cycles(1) (
+        if controllerActive.getValue() = false 
         then(
             torqueMotor.SetTorque(0);
         )
         else(
-            if ctl_mode = <Initialization> 
-            then (
-                if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
-                else (
-                    InitializeCtl();
-                )
-            )
-            else if ctl_mode = <Operating>
-            then(
-                if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)           
-                else (
-                    MonitorArm();
-                    UpdateTorque();
-                )
-            )
-            else if ctl_mode = <Stable>
-            then 
-                if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
-                else (
-                    MonitorArm();
-                    torqueMotor.LockMotor();
-                )
+            UpdateTorque();
+            MonitorArm();
+            UpdateTorque();
 
-            else if ctl_mode = <Shutdown>
-            then 
-                ShutdownCtl()
-            else if ctl_mode = <Emergency>
-            then (
-                EmergencyStop();
-            )
+
+
+            -- if ctl_mode = <Initialization> 
+            -- then (
+            --     if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
+            --     else (
+            --         InitializeCtl();
+            --     )
+            -- )
+            -- else if ctl_mode = <Operating>
+            -- then(
+            --     if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)           
+            --     else (
+            --         MonitorArm();
+            --         UpdateTorque();
+            --     )
+            -- )
+            -- else if ctl_mode = <Stable>
+            -- then 
+            --     if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
+            --     else (
+            --         MonitorArm();
+            --         torqueMotor.LockMotor();
+            --     )
+
+            -- else if ctl_mode = <Shutdown>
+            -- then 
+            --     ShutdownCtl()
+            -- else if ctl_mode = <Emergency>
+            -- then (
+            --     EmergencyStop();
+            -- )
         );
     );
 
     thread
-        periodic(2e8,0,0,0)(ControlLoop);
+        periodic(1e5,0,0,0)(ControlLoop);
         -- periodic(1e9,0,0,0)(CreateEvent); -- We would like to do this but are unable to. 
 
 

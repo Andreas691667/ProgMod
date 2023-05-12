@@ -106,7 +106,9 @@ operations
 
         env_pos := env_pos + env_vel * dt;  
         last_time := time/1e9;          
-    );
+    )
+    pre env_pos <= M2 and env_pos >= M1
+    post env_pos <= M2 and env_pos >= M1;
     
 
     -- public Step : () ==> ()
