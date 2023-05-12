@@ -1,24 +1,21 @@
 class RobotController
 
 types 
-    public Event = <AlterTargetAngle> | <ShutdownController>;
     public MODE = <Initialization> | <Operating> | <Stable> | <Shutdown> | <Emergency>;
 
 instance variables
     positionSensor : PositionSensor;
     torqueMotor : TorqueMotor;
 
-    private ctl_pos : real;                     -- current angle (radians)
-    private io : IO := new IO();
+    public controller_active : bool := true;    -- controller active flag
 
+    private ctl_pos : real;                     -- current angle (radians)
     private last_err : real;                    -- latest error value
     private last_time : real;                   -- latest time value
     private ctl_tau : real;  
     private ctl_mode : MODE;                    -- 
     
     private tau_gravity : real := 0;            -- torque from gravity
-
-    public events : seq of (real * Event * real) := [];
 
 values
     private N1 : real = 0;                      -- lower bound //operation range
@@ -43,24 +40,6 @@ operations
         torqueMotor := t;
         ctl_mode := <Initialization>;
     );
-
-    public AddEvent : real * Event * real ==> ()
-    AddEvent(t, e, d) == duration(0) (
-        events := events ^ [mk_(t,e,d)];
-    );
-
-    public CreateEvent : () ==> ()
-    CreateEvent() == duration(0) (
-        if len events > 0 then (
-            let mk_(event_time, event, event_data) = hd events
-            in if event_time <= time then (
-                if(event = <AlterTargetAngle>)  then SetTargetAngle(event_data)
-                else if(event = <ShutdownController>) then SetCtlMode(<Shutdown>);
-            events := tl events;   
-            )
-        ) 
-    );
-
 
     -- update velocity based on error
     public UpdateTorque : () ==> () 
@@ -98,7 +77,6 @@ operations
 
     );
 
-
     private SetCtlMode : (MODE) ==> ()
     SetCtlMode(mode) == duration(0) (
         ctl_mode := mode;
@@ -117,53 +95,52 @@ operations
     ShutdownCtl() == duration(1e7) (
         torqueMotor.LockMotor();
     );
-
         
     private EmergencyStop : () ==> ()
     EmergencyStop() == duration(1e7) (
         torqueMotor.SetTorque(0);
     );
-    
-
 
     private ControlLoop : () ==> ()
     ControlLoop() == cycles(2) (
-        CreateEvent();
-        if ctl_mode = <Initialization> 
-        then (
-            if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
-            else (
-                InitializeCtl();
-            )
-        )
-        else if ctl_mode = <Operating>
+        if controller_active = false 
         then(
-            if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)           
-            else (
-                MonitorArm();
-                UpdateTorque();
-            )
+            torqueMotor.SetTorque(0);
         )
-        else if ctl_mode = <Stable>
-        then 
-            if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
-            else (
-                MonitorArm();
-                torqueMotor.LockMotor();
+        else(
+            if ctl_mode = <Initialization> 
+            then (
+                if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
+                else (
+                    InitializeCtl();
+                )
             )
+            else if ctl_mode = <Operating>
+            then(
+                if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)           
+                else (
+                    MonitorArm();
+                    UpdateTorque();
+                )
+            )
+            else if ctl_mode = <Stable>
+            then 
+                if(torqueMotor.GetMotorState() = "Failed" or positionSensor.GetSensorState() = "Failed") then SetCtlMode(<Emergency>)
+                else (
+                    MonitorArm();
+                    torqueMotor.LockMotor();
+                )
 
-        else if ctl_mode = <Shutdown>
-        then 
-            ShutdownCtl()
-        else if ctl_mode = <Emergency>
-        then (
-            EmergencyStop();
+            else if ctl_mode = <Shutdown>
+            then 
+                ShutdownCtl()
+            else if ctl_mode = <Emergency>
+            then (
+                EmergencyStop();
+            )
         );
     );
 
-
-    sync
-        mutex(CreateEvent);
     thread
         periodic(2e8,0,0,0)(ControlLoop);
         -- periodic(1e9,0,0,0)(CreateEvent); -- We would like to do this but are unable to. 

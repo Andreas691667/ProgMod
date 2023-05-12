@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <fmiModelDescription 	fmiVersion="2.0" 
 						modelName="RobotArm v.4.0" 
-						guid="{fbcb09f1-ef8a-446d-b996-7beb2cff11f3}" 
+						guid="{7dc35fc9-d7ba-4ba4-a359-493da33ed713}" 
 						description="" 
 						author="" 
 						version="Version 1" 
 						copyright="Copyright Overture tool (Aarhus University)" 
 						license="Some Overture FMI License" 
 						generationTool="Overture Tool FMI Exporter - v0.2.19-SNAPSHOT"
-						generationDateAndTime="2023-05-05T13:21:15" 
+						generationDateAndTime="2023-05-11T12:31:13" 
 						variableNamingConvention="flat" 
 						numberOfEventIndicators="0">
 
