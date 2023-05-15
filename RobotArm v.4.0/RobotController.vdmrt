@@ -47,12 +47,12 @@ operations
     UpdateTorque() == duration(0) (
         
         dcl err : real := HardwareInterface`targetAngle.getValue()-ctl_pos;
-        dcl dt : real := time/1e9 - last_time;
-        dcl dq_err : real := (err - last_err)/1;
+        dcl dt : real := 1e5*1e-9;
+        dcl dq_err : real := (err - last_err)/dt;
         
         tau_gravity := m*g*r*MATH`cos(ctl_pos);
 
-        ctl_tau := Kp.getValue()*err + Kd.getValue() * 1 - tau_gravity;
+        ctl_tau := Kp.getValue()*err + Kd.getValue() * dq_err - tau_gravity;
         torqueMotor.SetTorque(ctl_tau);
 
         last_err := err;
